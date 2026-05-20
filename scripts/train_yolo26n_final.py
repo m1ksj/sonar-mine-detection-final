@@ -1,0 +1,108 @@
+﻿from argparse import ArgumentParser
+from pathlib import Path
+import csv
+import sys
+
+import yaml
+from ultralytics import YOLO
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from sonar_mine_detection.training.yolo26n_args import (  # noqa: E402
+    build_yolo26n_train_args,
+)
+
+
+def load_yaml(path):
+    with open(path, "r", encoding="utf-8") as file:
+        return yaml.safe_load(file)
+
+
+def read_plan_row(path, job_index):
+    with open(path, "r", encoding="utf-8") as file:
+        rows = list(csv.DictReader(file))
+
+    for row in rows:
+        if int(row["job_index"]) == job_index:
+            return row
+
+    raise ValueError(f"Unknown final job index: {job_index}")
+
+
+def load_hparams(path, config):
+    path = Path(path)
+
+    if path.exists():
+        return load_yaml(path)
+
+    return {
+        "learning_rate": config["tuning"]["learning_rates"][0],
+        "batch_size": config["tuning"]["batch_sizes"][0],
+        "patience": config["tuning"]["patience_values"][0],
+    }
+
+
+def main():
+    parser = ArgumentParser()
+    parser.add_argument("--config", default="configs/project.yaml")
+    parser.add_argument(
+        "--plan",
+        default="reports/tables/final_training_plan.csv",
+    )
+    parser.add_argument(
+        "--hparams",
+        default="configs/yolo26n_best.yaml",
+    )
+    parser.add_argument("--job-index", type=int, required=True)
+    args = parser.parse_args()
+
+    config = load_yaml(args.config)
+    row = read_plan_row(args.plan, args.job_index)
+
+    if row["model"] != "yolo26n":
+        raise ValueError("This script only runs YOLO26n final jobs.")
+
+    hparams = load_hparams(args.hparams, config)
+
+    run_name = (
+        f"final_yolo26n_"
+        f"{row['augmentation']}_"
+        f"seed{row['seed']}"
+    )
+
+    train_args = build_yolo26n_train_args(
+        data_yaml=config["paths"]["yolo26n_data_yaml"],
+        output_dir=Path(config["paths"]["experiments_dir"]) / "final",
+        run_name=run_name,
+        image_size=config["final_training"]["image_size"],
+        epochs=config["final_training"]["epochs"],
+        batch_size=int(hparams["batch_size"]),
+        learning_rate=float(hparams["learning_rate"]),
+        patience=int(hparams["patience"]),
+        seed=int(row["seed"]),
+        augmentation_key=row["augmentation"],
+        augmentation_config="configs/augmentations.yaml",
+    )
+
+    model = YOLO(config["tuning"]["model"])
+    results = model.train(**train_args)
+
+    save_dir = Path(results.save_dir)
+    best_weights = save_dir / "weights" / "best.pt"
+
+    if best_weights.exists():
+        model = YOLO(best_weights)
+
+    model.val(
+        data=config["paths"]["yolo26n_data_yaml"],
+        split="test",
+        plots=False,
+        project=str(Path(config["paths"]["experiments_dir"]) / "final_test"),
+        name=run_name,
+        exist_ok=True,
+    )
+
+
+if __name__ == "__main__":
+    main()
