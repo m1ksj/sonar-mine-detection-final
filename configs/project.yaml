@@ -69,3 +69,8 @@ paths:
   experiments_dir: "experiments"
   final_tables_dir: "reports/tables"
   final_figures_dir: "reports/figures"
+
+yolov4:
+  base_cfg_url: "https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4-custom.cfg"
+  output_dir: "configs/yolov4"
+
