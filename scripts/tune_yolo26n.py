@@ -31,7 +31,6 @@ def read_plan_row(path, job_index):
                 "lr": float(row["learning_rate"]),
                 "batch": int(row["batch_size"]),
                 "patience": int(row["patience"]),
-                "confidence": float(row["confidence"]),
             }
 
     raise ValueError(f"Unknown tuning job index: {job_index}")
@@ -80,8 +79,7 @@ def main():
         f"fold{settings['fold']}_"
         f"lr{settings['lr']}_"
         f"batch{settings['batch']}_"
-        f"patience{settings['patience']}_"
-        f"conf{settings['confidence']}"
+        f"patience{settings['patience']}"
     )
 
     fold_dir = (

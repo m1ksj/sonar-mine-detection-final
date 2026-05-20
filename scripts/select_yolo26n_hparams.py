@@ -10,7 +10,6 @@ GROUP_KEYS = [
     "learning_rate",
     "batch_size",
     "patience",
-    "confidence",
 ]
 
 
@@ -67,7 +66,6 @@ def write_best_config(path, best_row):
         "learning_rate": float(best_row["learning_rate"]),
         "batch_size": int(best_row["batch_size"]),
         "patience": int(best_row["patience"]),
-        "confidence": float(best_row["confidence"]),
         "mean_map50_95": float(best_row["mean_map50_95"]),
         "n_folds": int(best_row["n_folds"]),
     }

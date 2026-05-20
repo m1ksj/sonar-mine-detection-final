@@ -36,8 +36,7 @@ def make_run_name(row):
         f"fold{row['fold']}_"
         f"lr{row['learning_rate']}_"
         f"batch{row['batch_size']}_"
-        f"patience{row['patience']}_"
-        f"conf{row['confidence']}"
+        f"patience{row['patience']}"
     )
 
 
@@ -69,7 +68,6 @@ def collect_results(plan_path, results_dir):
             "learning_rate": plan_row["learning_rate"],
             "batch_size": plan_row["batch_size"],
             "patience": plan_row["patience"],
-            "confidence": plan_row["confidence"],
             "run_name": run_name,
             "status": "missing" if result_row is None else "done",
             "results_path": str(results_path),

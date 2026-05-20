@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=24G
 #SBATCH --gres=gpu:1
-#SBATCH --array=0-119
+#SBATCH --array=0-59
 
 set -e
 

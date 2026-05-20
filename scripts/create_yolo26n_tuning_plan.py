@@ -29,17 +29,15 @@ def build_plan(config):
     learning_rates = config["tuning"]["learning_rates"]
     batch_sizes = config["tuning"]["batch_sizes"]
     patience_values = config["tuning"]["patience_values"]
-    confidence_values = config["tuning"]["confidence_thresholds"]
 
     grid = product(
         folds,
         learning_rates,
         batch_sizes,
         patience_values,
-        confidence_values,
     )
 
-    for fold, lr, batch, patience, confidence in grid:
+    for fold, lr, batch, patience in grid:
         rows.append(
             {
                 "job_index": job_index,
@@ -47,7 +45,6 @@ def build_plan(config):
                 "learning_rate": lr,
                 "batch_size": batch,
                 "patience": patience,
-                "confidence": confidence,
             }
         )
         job_index += 1
