@@ -15,12 +15,38 @@ Then install the project dependencies with:
 
     py -m pipenv install --dev
 
-## Minimal workflow
+Install the pre-commit hooks:
 
-1. Install dependencies with Pipenv.
-2. Prepare the dataset with scripts/setup_data.py.
-3. Download the selected deployment model with scripts/setup_model.py.
-4. Start the local API with scripts/run_api.py.
+    py -m pipenv run pre-commit install
+
+Run the tests:
+
+    py -m pipenv run python -m unittest discover tests
+
+## Minimal deployment workflow
+
+Prepare the dataset:
+
+    py -m pipenv run python scripts/setup_data.py --config configs/project.yaml
+
+Download the selected deployment model:
+
+    py -m pipenv run python scripts/setup_model.py --config configs/project.yaml
+
+Start the local API:
+
+    py -m pipenv run python scripts/run_api.py
+
+## Training workflow
+
+The final training setup is controlled by:
+
+    configs/project.yaml
+    configs/augmentations.yaml
+
+The final comparison uses YOLOv4 and YOLO26n with and without online augmentation across three seeds.
+
+YOLO26n tuning uses cross-validation. YOLOv4 does not use cross-validation and is only trained in the final seed-based comparison.
 
 ## Repository policy
 
