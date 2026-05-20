@@ -4,6 +4,17 @@ Real-world side-scan sonar object detection project for Applied Machine Learning
 
 The project compares YOLOv4 and YOLO26n for MILCO/NOMBO detection. The final repository is designed around scripted data setup, scripted training entry points, small result tables and local API deployment.
 
+
+## Setup
+
+If Pipenv is not installed, install it with:
+
+    py -m pip install --user pipenv
+
+Then install the project dependencies with:
+
+    py -m pipenv install --dev
+
 ## Minimal workflow
 
 1. Install dependencies with Pipenv.
