@@ -9,6 +9,7 @@ pandas = "*"
 scikit-learn = "*"
 pillow = "*"
 requests = "*"
+ultralytics = "*"
 
 [dev-packages]
 pre-commit = "*"
