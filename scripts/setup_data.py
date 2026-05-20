@@ -93,7 +93,10 @@ def extract_archives(archive_paths, raw_dir, force=False):
 
 def setup_data(config, source_zip=None, force=False):
     from sonar_mine_detection.data.audit import build_manifest
-    from sonar_mine_detection.data.split import make_train_val_test_split
+    from sonar_mine_detection.data.split import (
+        make_cv_folds,
+        make_train_val_test_split,
+    )
 
     archive_paths = prepare_archives(config, source_zip=source_zip)
     extract_archives(archive_paths, config["data"]["raw_dir"], force=force)
@@ -117,6 +120,14 @@ def setup_data(config, source_zip=None, force=False):
         stratify_by=config["split"]["stratify_by"],
     )
 
+    cv_summary = make_cv_folds(
+        source_csv_path=Path(config["data"]["splits_dir"]) / "train.csv",
+        output_dir=Path(config["data"]["splits_dir"]) / "cv",
+        n_splits=config["cv"]["folds"],
+        seed=config["cv"]["seed"],
+        stratify_by=config["split"]["stratify_by"],
+    )
+
     print(f"Images found: {len(manifest)}")
     print(f"Manifest written to: {manifest_path}")
     print(
@@ -125,6 +136,7 @@ def setup_data(config, source_zip=None, force=False):
         f"val={len(val_rows)}, "
         f"test={len(test_rows)}"
     )
+    print(f"CV folds written: {len(cv_summary)}")
 
 
 def main():

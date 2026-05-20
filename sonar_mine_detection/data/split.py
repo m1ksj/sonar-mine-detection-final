@@ -1,7 +1,7 @@
 ﻿import csv
 from pathlib import Path
 
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import StratifiedKFold, train_test_split
 
 
 def read_csv(path):
@@ -84,3 +84,46 @@ def make_train_val_test_split(
     )
 
     return train_rows, val_rows, test_rows
+
+
+def make_cv_folds(source_csv_path, output_dir, n_splits, seed, stratify_by):
+    rows = read_csv(source_csv_path)
+    labels = [row[stratify_by] for row in rows]
+
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    splitter = StratifiedKFold(
+        n_splits=n_splits,
+        shuffle=True,
+        random_state=seed,
+    )
+
+    summary_rows = []
+
+    for fold, (train_idx, val_idx) in enumerate(splitter.split(rows, labels)):
+        train_rows = [rows[index].copy() for index in train_idx]
+        val_rows = [rows[index].copy() for index in val_idx]
+
+        for row in train_rows:
+            row["cv_fold"] = fold
+            row["cv_split"] = "train"
+
+        for row in val_rows:
+            row["cv_fold"] = fold
+            row["cv_split"] = "val"
+
+        write_csv(output_dir / f"fold_{fold}_train.csv", train_rows)
+        write_csv(output_dir / f"fold_{fold}_val.csv", val_rows)
+
+        summary_rows.append(
+            {
+                "fold": fold,
+                "train_images": len(train_rows),
+                "val_images": len(val_rows),
+            }
+        )
+
+    write_csv(output_dir / "cv_summary.csv", summary_rows)
+
+    return summary_rows
