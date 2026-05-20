@@ -1,0 +1,13 @@
+job_index,model,augmentation,seed,run_name,status,runtime_seconds,best_weights,best_weights_mb,parameter_count,test_precision,test_recall,test_map50,test_map50_95,test_fitness
+0,yolov4,yolov4_default,117,final_yolov4_yolov4_default_seed117,missing,,,,,,,,,
+1,yolov4,yolov4_default,221,final_yolov4_yolov4_default_seed221,missing,,,,,,,,,
+2,yolov4,yolov4_default,333,final_yolov4_yolov4_default_seed333,missing,,,,,,,,,
+3,yolov4,yolov4_no_aug,117,final_yolov4_yolov4_no_aug_seed117,missing,,,,,,,,,
+4,yolov4,yolov4_no_aug,221,final_yolov4_yolov4_no_aug_seed221,missing,,,,,,,,,
+5,yolov4,yolov4_no_aug,333,final_yolov4_yolov4_no_aug_seed333,missing,,,,,,,,,
+6,yolo26n,yolo26n_yolov4_style,117,final_yolo26n_yolo26n_yolov4_style_seed117,missing,,,,,,,,,
+7,yolo26n,yolo26n_yolov4_style,221,final_yolo26n_yolo26n_yolov4_style_seed221,missing,,,,,,,,,
+8,yolo26n,yolo26n_yolov4_style,333,final_yolo26n_yolo26n_yolov4_style_seed333,missing,,,,,,,,,
+9,yolo26n,yolo26n_no_aug,117,final_yolo26n_yolo26n_no_aug_seed117,missing,,,,,,,,,
+10,yolo26n,yolo26n_no_aug,221,final_yolo26n_yolo26n_no_aug_seed221,missing,,,,,,,,,
+11,yolo26n,yolo26n_no_aug,333,final_yolo26n_yolo26n_no_aug_seed333,missing,,,,,,,,,
