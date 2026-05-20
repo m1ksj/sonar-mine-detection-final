@@ -73,5 +73,8 @@ paths:
 
 yolov4:
   base_cfg_url: "https://raw.githubusercontent.com/AlexeyAB/darknet/master/cfg/yolov4-custom.cfg"
+  darknet_repo: "https://github.com/AlexeyAB/darknet.git"
+  pretrained_url: "https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.conv.137"
   output_dir: "configs/yolov4"
+  external_dir: "external/yolov4"
 
