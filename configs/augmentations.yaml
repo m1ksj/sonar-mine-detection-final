@@ -16,6 +16,7 @@ yolov4_no_aug:
   hue: 0
   random: 0
 
+# Values read from ultralytics.cfg.DEFAULT_CFG_DICT with ultralytics==8.4.52
 yolo26n_default:
   framework: "ultralytics"
   mosaic: 1.0
@@ -75,3 +76,4 @@ yolo26n_no_aug:
   hsv_v: 0.0
   erasing: 0.0
   auto_augment: null
+
