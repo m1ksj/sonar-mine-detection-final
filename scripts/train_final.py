@@ -29,7 +29,7 @@ def build_command(args, row):
         ]
 
     if row["model"] == "yolov4":
-        if args.darknet_bin is None or args.pretrained is None:
+        if not args.darknet_bin or not args.pretrained:
             raise ValueError(
                 "YOLOv4 jobs need --darknet-bin and --pretrained."
             )

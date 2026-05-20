@@ -1,7 +1,9 @@
 ﻿from argparse import ArgumentParser
+import json
 from pathlib import Path
 import csv
 import subprocess
+import time
 
 import yaml
 
@@ -66,7 +68,37 @@ def main():
         "-map",
     ]
 
+    run_name = (
+        f"final_yolov4_"
+        f"{row['augmentation']}_"
+        f"seed{row['seed']}"
+    )
+
+    start_time = time.time()
     subprocess.run(command, check=True)
+
+    metadata_dir = (
+        Path(config["paths"]["experiments_dir"])
+        / "final_metadata"
+    )
+    metadata_dir.mkdir(parents=True, exist_ok=True)
+
+    metadata = {
+        "job_index": args.job_index,
+        "model": "yolov4",
+        "augmentation": row["augmentation"],
+        "seed": int(row["seed"]),
+        "run_name": run_name,
+        "runtime_seconds": time.time() - start_time,
+        "cfg_path": str(cfg_path),
+        "data_path": str(data_path),
+    }
+
+    metadata_path = metadata_dir / f"{run_name}.json"
+    metadata_path.write_text(
+        json.dumps(metadata, indent=2),
+        encoding="utf-8",
+    )
 
 
 if __name__ == "__main__":

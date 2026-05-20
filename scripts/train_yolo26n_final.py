@@ -1,7 +1,9 @@
 ﻿from argparse import ArgumentParser
+import json
 from pathlib import Path
 import csv
 import sys
+import time
 
 import yaml
 from ultralytics import YOLO
@@ -85,6 +87,8 @@ def main():
         augmentation_config="configs/augmentations.yaml",
     )
 
+    start_time = time.time()
+
     model = YOLO(config["tuning"]["model"])
     results = model.train(**train_args)
 
@@ -94,13 +98,45 @@ def main():
     if best_weights.exists():
         model = YOLO(best_weights)
 
-    model.val(
+    test_results = model.val(
         data=config["paths"]["yolo26n_data_yaml"],
         split="test",
         plots=False,
         project=str(Path(config["paths"]["experiments_dir"]) / "final_test"),
         name=run_name,
         exist_ok=True,
+    )
+
+    parameter_count = ""
+
+    if hasattr(model, "model"):
+        parameter_count = sum(
+            parameter.numel()
+            for parameter in model.model.parameters()
+        )
+
+    metadata = {
+        "job_index": args.job_index,
+        "model": "yolo26n",
+        "augmentation": row["augmentation"],
+        "seed": int(row["seed"]),
+        "run_name": run_name,
+        "runtime_seconds": time.time() - start_time,
+        "best_weights": str(best_weights),
+        "best_weights_mb": (
+            best_weights.stat().st_size / 1_000_000
+            if best_weights.exists()
+            else ""
+        ),
+        "parameter_count": parameter_count,
+        "train_save_dir": str(save_dir),
+        "test_save_dir": str(getattr(test_results, "save_dir", "")),
+    }
+
+    metadata_path = save_dir / "final_metadata.json"
+    metadata_path.write_text(
+        json.dumps(metadata, indent=2),
+        encoding="utf-8",
     )
 
 

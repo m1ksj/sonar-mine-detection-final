@@ -82,6 +82,18 @@ On SLURM, the array job is:
 
     sbatch jobs/tune_yolo26n_array.sbatch
 
+Final training jobs are listed in:
+
+    reports/tables/final_training_plan.csv
+
+A single final job can be checked with:
+
+    python scripts/train_final.py --job-index 6 --dry-run
+
+On SLURM, the final array job is:
+
+    sbatch jobs/train_final_array.sbatch
+
 YOLO26n tuning uses cross-validation. YOLOv4 does not use cross-validation and is only trained in the final seed-based comparison.
 
 ## Repository policy
@@ -89,6 +101,7 @@ YOLO26n tuning uses cross-validation. YOLOv4 does not use cross-validation and i
 Raw data, processed data, checkpoints, training runs, large logs and model weights are not committed to Git.
 
 Tracked files should be limited to source code, configs, small result tables, final figures and lightweight metadata.
+
 
 
 
