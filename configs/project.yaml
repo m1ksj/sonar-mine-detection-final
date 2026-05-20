@@ -65,6 +65,7 @@ deployment:
 
 paths:
   yolo26n_data_yaml: "data/processed/yolo26n/data.yaml"
+  yolo26n_cv_dir: "data/processed/yolo26n_cv"
   darknet_data_dir: "data/processed/darknet"
   experiments_dir: "experiments"
   final_tables_dir: "reports/tables"

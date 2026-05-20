@@ -36,8 +36,11 @@ def main():
         f"patience{args.patience}"
     )
 
+    fold_dir = Path(config["paths"]["yolo26n_cv_dir"]) / f"fold_{args.fold}"
+    fold_data_yaml = fold_dir / "data.yaml"
+
     train_args = build_yolo26n_train_args(
-        data_yaml=config["paths"]["yolo26n_data_yaml"],
+        data_yaml=fold_data_yaml,
         output_dir=Path(config["paths"]["experiments_dir"]) / "tuning",
         run_name=run_name,
         image_size=config["tuning"]["image_size"],

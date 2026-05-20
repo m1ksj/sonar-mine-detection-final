@@ -108,3 +108,36 @@ def export_yolo_datasets(splits_dir, yolo26n_dir, darknet_dir):
         "yolo26n_dir": str(yolo26n_dir),
         "darknet_dir": str(darknet_dir),
     }
+
+
+def export_yolo26n_cv_folds(splits_dir, output_root):
+    splits_dir = Path(splits_dir)
+    output_root = Path(output_root)
+
+    cv_dir = splits_dir / "cv"
+    fold_files = sorted(cv_dir.glob("fold_*_train.csv"))
+
+    for train_file in fold_files:
+        fold_name = train_file.stem.replace("_train", "")
+        fold_dir = output_root / fold_name
+
+        val_file = cv_dir / f"{fold_name}_val.csv"
+
+        train_rows = read_split_csv(train_file)
+        val_rows = read_split_csv(val_file)
+
+        copy_split_files(train_rows, fold_dir, "train")
+        copy_split_files(val_rows, fold_dir, "val")
+
+        data_yaml = fold_dir / "data.yaml"
+        lines = [
+            f"path: {fold_dir.resolve().as_posix()}",
+            "train: images/train",
+            "val: images/val",
+            "names:",
+            "  0: MILCO",
+            "  1: NOMBO",
+        ]
+        data_yaml.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    return len(fold_files)
