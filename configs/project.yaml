@@ -6,8 +6,13 @@
     1: NOMBO
 
 data:
-  source_url: "https://figshare.com/ndownloader/articles/24574879/versions/1"
-  sha256: ""
+  figshare_files_url: "https://api.figshare.com/v2/articles/24574879/files"
+  download_files:
+    - "2010.zip"
+    - "2015.zip"
+    - "2017.zip"
+    - "2018.zip"
+    - "2021.zip"
   raw_dir: "data/raw"
   processed_dir: "data/processed"
   splits_dir: "data/splits"

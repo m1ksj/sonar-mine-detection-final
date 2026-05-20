@@ -1,4 +1,4 @@
-# Python
+﻿# Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -8,13 +8,13 @@ __pycache__/
 .venv/
 .env
 
-# Data and generated artifacts
-data/
-external/
-experiments/
-runs/
-ultralytics_runs/
-darknet/
+# Root-level generated artifacts
+/data/
+/external/
+/experiments/
+/runs/
+/ultralytics_runs/
+/darknet/
 
 # Large model files
 *.pt
