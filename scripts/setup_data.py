@@ -93,6 +93,7 @@ def extract_archives(archive_paths, raw_dir, force=False):
 
 def setup_data(config, source_zip=None, force=False):
     from sonar_mine_detection.data.audit import build_manifest
+    from sonar_mine_detection.data.split import make_train_val_test_split
 
     archive_paths = prepare_archives(config, source_zip=source_zip)
     extract_archives(archive_paths, config["data"]["raw_dir"], force=force)
@@ -106,8 +107,24 @@ def setup_data(config, source_zip=None, force=False):
         output_path=manifest_path,
     )
 
+    train_rows, val_rows, test_rows = make_train_val_test_split(
+        manifest_path=manifest_path,
+        output_dir=config["data"]["splits_dir"],
+        seed=config["split"]["seed"],
+        train_size=config["split"]["train"],
+        val_size=config["split"]["val"],
+        test_size=config["split"]["test"],
+        stratify_by=config["split"]["stratify_by"],
+    )
+
     print(f"Images found: {len(manifest)}")
     print(f"Manifest written to: {manifest_path}")
+    print(
+        "Split sizes: "
+        f"train={len(train_rows)}, "
+        f"val={len(val_rows)}, "
+        f"test={len(test_rows)}"
+    )
 
 
 def main():
