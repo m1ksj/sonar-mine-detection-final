@@ -70,6 +70,18 @@ The final training setup is controlled by:
 
 The final comparison uses YOLOv4 and YOLO26n with and without online augmentation across three seeds.
 
+YOLO26n tuning jobs are listed in:
+
+    reports/tables/yolo26n_tuning_plan.csv
+
+A single tuning job can be started with:
+
+    python scripts/tune_yolo26n.py --job-index 0
+
+On SLURM, the array job is:
+
+    sbatch jobs/tune_yolo26n_array.sbatch
+
 YOLO26n tuning uses cross-validation. YOLOv4 does not use cross-validation and is only trained in the final seed-based comparison.
 
 ## Repository policy
@@ -77,5 +89,6 @@ YOLO26n tuning uses cross-validation. YOLOv4 does not use cross-validation and i
 Raw data, processed data, checkpoints, training runs, large logs and model weights are not committed to Git.
 
 Tracked files should be limited to source code, configs, small result tables, final figures and lightweight metadata.
+
 
 
