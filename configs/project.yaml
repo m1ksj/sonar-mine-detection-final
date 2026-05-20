@@ -1,0 +1,66 @@
+﻿project:
+  name: sonar_mine_detection
+  image_size: 640
+  classes:
+    0: MILCO
+    1: NOMBO
+
+data:
+  source_url: "https://figshare.com/ndownloader/articles/24574879/versions/1"
+  sha256: ""
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  splits_dir: "data/splits"
+  metadata_dir: "data/metadata"
+  years: [2010, 2015, 2017, 2018, 2021]
+
+split:
+  seed: 117
+  train: 0.70
+  val: 0.15
+  test: 0.15
+  stratify_by: "image_category"
+
+cv:
+  model: "yolo26n"
+  folds: 5
+  seed: 117
+
+tuning:
+  model: "yolo26n.pt"
+  epochs: 150
+  image_size: 640
+  learning_rates: [0.001, 0.005, 0.01]
+  batch_sizes: [8, 16]
+  patience_values: [50, 100]
+  confidence_thresholds: [0.25, 0.5]
+  optimizers: ["SGD"]
+
+final_training:
+  image_size: 640
+  epochs: 500
+  seeds: [117, 221, 333]
+  runs:
+    - model: "yolov4"
+      augmentation: "yolov4_default"
+    - model: "yolov4"
+      augmentation: "none"
+    - model: "yolo26n"
+      augmentation: "yolov4_style"
+    - model: "yolo26n"
+      augmentation: "none"
+
+deployment:
+  selection_model: "yolo26n"
+  selection_augmentation: "yolov4_style"
+  selection_metric: "val_map50_95"
+  artifact_url: ""
+  artifact_sha256: ""
+  local_model_path: "models/final/yolo26n_selected.pt"
+
+paths:
+  yolo26n_data_yaml: "data/processed/yolo26n/data.yaml"
+  darknet_data_dir: "data/processed/darknet"
+  experiments_dir: "experiments"
+  final_tables_dir: "reports/tables"
+  final_figures_dir: "reports/figures"

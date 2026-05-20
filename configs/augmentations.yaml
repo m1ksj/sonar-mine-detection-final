@@ -1,0 +1,57 @@
+﻿yolov4_default:
+  framework: "darknet"
+  mosaic: 1
+  jitter: 0.3
+  saturation: 1.5
+  exposure: 1.5
+  hue: 0.1
+  random: 1
+
+yolov4_no_aug:
+  framework: "darknet"
+  mosaic: 0
+  jitter: 0
+  saturation: 1
+  exposure: 1
+  hue: 0
+  random: 0
+
+yolo26n_yolov4_style:
+  framework: "ultralytics"
+  mosaic: 1.0
+  close_mosaic: 10
+  mixup: 0.0
+  cutmix: 0.0
+  copy_paste: 0.0
+  degrees: 0.0
+  translate: 0.05
+  scale: 0.30
+  shear: 0.0
+  perspective: 0.0
+  fliplr: 0.5
+  flipud: 0.0
+  hsv_h: 0.0
+  hsv_s: 0.20
+  hsv_v: 0.20
+  erasing: 0.0
+  auto_augment: null
+
+yolo26n_no_aug:
+  framework: "ultralytics"
+  mosaic: 0.0
+  close_mosaic: 0
+  mixup: 0.0
+  cutmix: 0.0
+  copy_paste: 0.0
+  degrees: 0.0
+  translate: 0.0
+  scale: 0.0
+  shear: 0.0
+  perspective: 0.0
+  fliplr: 0.0
+  flipud: 0.0
+  hsv_h: 0.0
+  hsv_s: 0.0
+  hsv_v: 0.0
+  erasing: 0.0
+  auto_augment: null
