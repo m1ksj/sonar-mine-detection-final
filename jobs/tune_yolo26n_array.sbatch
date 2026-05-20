@@ -6,10 +6,13 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=24G
 #SBATCH --gres=gpu:1
-#SBATCH --array=0-59
+#SBATCH --array=0-59%10
 
 set -e
 
+export PATH="$HOME/.local/bin:$PATH"
+
 mkdir -p experiments/slurm
 
-python scripts/tune_yolo26n.py --job-index "${SLURM_ARRAY_TASK_ID}"
+pipenv run python scripts/tune_yolo26n.py --job-index "${SLURM_ARRAY_TASK_ID}"
+

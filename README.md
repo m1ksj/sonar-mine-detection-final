@@ -82,6 +82,12 @@ On SLURM, the array job is:
 
     sbatch jobs/tune_yolo26n_array.sbatch
 
+Before submitting jobs, create the SLURM output directory:
+
+    mkdir -p experiments/slurm
+
+The tuning array runs at most 10 jobs at the same time.
+
 Final training jobs are listed in:
 
     reports/tables/final_training_plan.csv
@@ -101,6 +107,7 @@ YOLO26n tuning uses cross-validation. YOLOv4 does not use cross-validation and i
 Raw data, processed data, checkpoints, training runs, large logs and model weights are not committed to Git.
 
 Tracked files should be limited to source code, configs, small result tables, final figures and lightweight metadata.
+
 
 
 

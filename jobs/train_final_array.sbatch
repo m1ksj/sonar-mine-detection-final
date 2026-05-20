@@ -6,13 +6,16 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=24G
 #SBATCH --gres=gpu:1
-#SBATCH --array=0-11
+#SBATCH --array=0-11%4
 
 set -e
 
+export PATH="$HOME/.local/bin:$PATH"
+
 mkdir -p experiments/slurm
 
-python scripts/train_final.py \
+pipenv run python scripts/train_final.py \
   --job-index "${SLURM_ARRAY_TASK_ID}" \
   --darknet-bin "${DARKNET_BIN:-}" \
   --pretrained "${YOLOV4_PRETRAINED:-}"
+
