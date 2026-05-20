@@ -23,6 +23,24 @@ Run the tests:
 
     py -m pipenv run python -m unittest discover tests
 
+## Command modes
+
+From normal PowerShell, prefix project commands with:
+
+    py -m pipenv run
+
+Example:
+
+    py -m pipenv run python scripts/setup_data.py --config configs/project.yaml
+    py -m pipenv run pre-commit run --all-files
+
+Inside the Pipenv shell, do not use py -m pipenv run.
+
+Example:
+
+    python scripts/setup_data.py --config configs/project.yaml
+    pre-commit run --all-files
+
 ## Minimal deployment workflow
 
 Prepare the dataset:
@@ -36,6 +54,12 @@ Download the selected deployment model:
 Start the local API:
 
     py -m pipenv run python scripts/run_api.py
+
+## Data setup
+
+The data setup script downloads the public Figshare year archives, extracts them, builds a dataset manifest, creates the fixed train/validation/test split and creates 5 cross-validation folds from the training split for YOLO26n tuning.
+
+YOLOv4 does not use cross-validation. It is only trained in the final seed-based comparison.
 
 ## Training workflow
 
@@ -53,3 +77,5 @@ YOLO26n tuning uses cross-validation. YOLOv4 does not use cross-validation and i
 Raw data, processed data, checkpoints, training runs, large logs and model weights are not committed to Git.
 
 Tracked files should be limited to source code, configs, small result tables, final figures and lightweight metadata.
+
+
