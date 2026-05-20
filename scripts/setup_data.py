@@ -97,6 +97,7 @@ def setup_data(config, source_zip=None, force=False):
         make_cv_folds,
         make_train_val_test_split,
     )
+    from sonar_mine_detection.data.yolo_export import export_yolo_datasets
 
     archive_paths = prepare_archives(config, source_zip=source_zip)
     extract_archives(archive_paths, config["data"]["raw_dir"], force=force)
@@ -128,6 +129,12 @@ def setup_data(config, source_zip=None, force=False):
         stratify_by=config["split"]["stratify_by"],
     )
 
+    export_yolo_datasets(
+        splits_dir=config["data"]["splits_dir"],
+        yolo26n_dir=Path(config["paths"]["yolo26n_data_yaml"]).parent,
+        darknet_dir=config["paths"]["darknet_data_dir"],
+    )
+
     print(f"Images found: {len(manifest)}")
     print(f"Manifest written to: {manifest_path}")
     print(
@@ -137,6 +144,7 @@ def setup_data(config, source_zip=None, force=False):
         f"test={len(test_rows)}"
     )
     print(f"CV folds written: {len(cv_summary)}")
+    print("YOLO26n and Darknet datasets exported.")
 
 
 def main():
