@@ -1,124 +1,209 @@
-﻿# Sonar Mine Detection
+# Sonar Mine Detection
 
-Real-world side-scan sonar object detection project for Applied Machine Learning.
-The project compares YOLOv4 and YOLO26n for MILCO/NOMBO detection using scripted data setup, fixed splits, cross-validation for YOLO26n tuning and final seed-based model comparison.
-
-## Local setup
-
-Install Pipenv if needed:
-
-    py -m pip install --user pipenv
-
-Install dependencies and run checks:
-
-    py -m pipenv install --dev
-    py -m pipenv run pre-commit install
-    py -m pipenv run python -m unittest discover tests
-    py -m pipenv run pre-commit run --all-files
-
-## Data setup
-
-The data setup script downloads the public Figshare year archives, extracts them, builds a manifest, creates fixed train/validation/test splits and creates 5 cross-validation folds from the training split.
-
-    py -m pipenv run python scripts/setup_data.py --config configs/project.yaml
-
-The Darknet export intentionally stores labels next to images because Darknet expects:
-
-    images/train/example.jpg
-    images/train/example.txt
+Reproducible side-scan sonar object detection project comparing YOLOv4 and YOLO26n for MILCO/NOMBO detection.
 
 ## Experiment design
 
-YOLO26n tuning uses 5-fold cross-validation over:
+Data:
+- Public Figshare sonar dataset, year archives 2010, 2015, 2017, 2018 and 2021.
+- Fixed train/validation/test split with seed 117.
+- Five cross-validation folds created from the training split.
 
-    learning_rates: [0.001, 0.005, 0.01]
-    batch_sizes: [8, 16]
-    optimizers: [SGD, AdamW]
-    patience: 50
+YOLO26n tuning:
+- learning rates: 0.001, 0.005, 0.01
+- batch sizes: 8, 16
+- optimizers: SGD, AdamW
+- patience fixed at 50
+- tuning metric: mean validation mAP50-95 across five folds
 
-This gives 60 tuning jobs. The best setup is selected by mean validation mAP50-95 across folds.
+Final comparison:
+- YOLOv4 default augmentation
+- YOLOv4 no augmentation
+- YOLO26n YOLOv4-style augmentation
+- YOLO26n no augmentation
+- seeds: 117, 221, 333
+- final reporting: held-out test metrics as mean ? standard deviation over seeds
 
-Final training compares YOLOv4 and YOLO26n with and without augmentation across three seeds.
+Deployment selection:
+- select only among YOLO26n YOLOv4-style final runs
+- select by validation mAP50-95, not test mAP50-95
+- keep the test set only for final reporting
 
-## Habrok fresh-clone workflow
+## Local checks
 
-From Habrok login node:
+```powershell
+py -m pip install --user pipenv
+py -m pipenv install --dev
+py -m pipenv run python -m unittest discover tests
+py -m pipenv run pre-commit run --all-files
+```
 
-    git clone <repo-url> sonar-mine-detection-final
-    cd sonar-mine-detection-final
+## Fresh H?br?k run
 
-Create scratch-backed runtime directories:
+Start from the H?br?k login node:
 
-    mkdir -p /scratch/$USER/sonar-mine-detection-final/data
-    mkdir -p /scratch/$USER/sonar-mine-detection-final/experiments
-    mkdir -p /scratch/$USER/sonar-mine-detection-final/external
-    ln -sfn /scratch/$USER/sonar-mine-detection-final/data data
-    ln -sfn /scratch/$USER/sonar-mine-detection-final/experiments experiments
-    ln -sfn /scratch/$USER/sonar-mine-detection-final/external external
+```bash
+git clone https://github.com/m1ksj/sonar-mine-detection sonar-mine-detection-final
+cd sonar-mine-detection-final
+```
 
-Load Python and install dependencies:
+Create scratch-backed runtime folders:
 
-    module purge
-    module load Python/3.11.5-GCCcore-13.2.0
-    export PATH="$HOME/.local/bin:$PATH"
-    python -m pip install --user pipenv
-    pipenv install --dev
+```bash
+mkdir -p /scratch/$USER/sonar-mine-detection-final/data
+mkdir -p /scratch/$USER/sonar-mine-detection-final/experiments
+mkdir -p /scratch/$USER/sonar-mine-detection-final/external
 
-If needed, install CUDA 12.1 PyTorch wheels inside Pipenv:
+ln -sfn /scratch/$USER/sonar-mine-detection-final/data data
+ln -sfn /scratch/$USER/sonar-mine-detection-final/experiments experiments
+ln -sfn /scratch/$USER/sonar-mine-detection-final/external external
+```
 
-    pipenv run pip install --no-cache-dir --force-reinstall torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 --index-url https://download.pytorch.org/whl/cu121
+Install the Python environment:
 
-Prepare data and plan tables:
+```bash
+module purge
+module load Python/3.11.5-GCCcore-13.2.0
+export PATH="$HOME/.local/bin:$PATH"
 
-    pipenv run python scripts/setup_data.py --config configs/project.yaml
-    pipenv run python scripts/setup_yolov4_configs.py --config configs/project.yaml
-    pipenv run python scripts/create_yolo26n_tuning_plan.py
-    pipenv run python scripts/create_final_training_plan.py
+python -m pip install --user pipenv
+pipenv install --dev
+```
 
-Prepare Darknet for YOLOv4:
+Install the CUDA 12.1 PyTorch wheels used by the GPU jobs:
 
-    pipenv run python scripts/setup_darknet.py --clone
-    bash scripts/build_darknet_habrok.sh
+```bash
+pipenv run pip install --no-cache-dir --force-reinstall \
+  torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 \
+  --index-url https://download.pytorch.org/whl/cu121
+```
+
+Prepare data, YOLOv4 configs and job plans:
+
+```bash
+pipenv run python scripts/setup_data.py --config configs/project.yaml
+pipenv run python scripts/setup_yolov4_configs.py --config configs/project.yaml
+pipenv run python scripts/create_yolo26n_tuning_plan.py
+pipenv run python scripts/create_final_training_plan.py
+```
+
+The Darknet export writes labels next to images because Darknet expects:
+
+```text
+images/train/example.jpg
+images/train/example.txt
+```
+
+Prepare Darknet:
+
+```bash
+pipenv run python scripts/setup_darknet.py
+bash scripts/build_darknet_habrok.sh
+```
+
+The Darknet build is intentionally:
+
+```text
+GPU=1
+OPENCV=1
+CUDNN=0
+CUDNN_HALF=0
+ARCH=compute_70,compute_80
+```
+
+Reason:
+- `OPENCV=1` is required because `yolov4_default.cfg` uses `mosaic=1`.
+- `CUDNN=0` and `CUDNN_HALF=0` are used for stable H?br?k execution.
+- `compute_70` supports V100 nodes and `compute_80` supports A100 nodes.
+
+Check Darknet on a GPU node:
+
+```bash
+sbatch jobs/test_darknet.sbatch
+squeue --me
+tail -80 $(ls -t experiments/slurm/darknet_test_*.out | head -1)
+tail -80 $(ls -t experiments/slurm/darknet_test_*.err | head -1)
+```
 
 Run YOLO26n tuning:
 
-    sbatch jobs/tune_yolo26n_array.sbatch
+```bash
+sbatch jobs/tune_yolo26n_array.sbatch
+```
 
-After tuning finishes:
+Monitor tuning:
 
-    pipenv run python scripts/collect_yolo26n_tuning_results.py
-    pipenv run python scripts/select_yolo26n_hparams.py
+```bash
+squeue --me
+tail -80 $(ls -t experiments/slurm/yolo26n_tune_*.out | head -1)
+tail -80 $(ls -t experiments/slurm/yolo26n_tune_*.err | head -1)
+```
+
+Collect tuning results:
+
+```bash
+pipenv run python scripts/collect_yolo26n_tuning_results.py
+pipenv run python scripts/select_yolo26n_hparams.py
+```
 
 Run final training:
 
-    pipenv run python scripts/train_final.py --job-index 0 --dry-run --darknet-bin external/yolov4/darknet/darknet --pretrained external/yolov4/yolov4.conv.137
-    pipenv run python scripts/train_final.py --job-index 6 --dry-run
-    sbatch jobs/train_final_array.sbatch
+```bash
+sbatch jobs/train_final_array.sbatch
+```
 
-After final training finishes:
+Monitor final training:
 
-    pipenv run python scripts/collect_final_results.py
-    pipenv run python scripts/select_deployment_model.py
+```bash
+squeue --me
+tail -80 $(ls -t experiments/slurm/final_*.out | head -1)
+tail -80 $(ls -t experiments/slurm/final_*.err | head -1)
+```
 
-## Deployment
+Collect final results, seed summaries and select the API model:
 
-The API expects a selected YOLO26n model at:
+```bash
+pipenv run python scripts/collect_final_results.py
+pipenv run python scripts/summarize_final_results.py
+pipenv run python scripts/select_deployment_model.py
+pipenv run python scripts/copy_selected_model.py
+```
 
-    models/final/yolo26n_selected.pt
+The main result tables are:
 
-Start the local API:
+```text
+reports/tables/yolo26n_tuning_results.csv
+reports/tables/yolo26n_hparam_summary.csv
+reports/tables/final_run_results.csv
+reports/tables/final_seed_summary.csv
+```
 
-    py -m pipenv run python scripts/run_api.py
+YOLO26n learning curves are stored in each run folder as `results.csv`.
+YOLOv4 weights and logs are stored under each run-specific `experiments/final/final_yolov4_...` folder.
+
+## API
+
+Start locally after `models/final/yolo26n_selected.pt` exists:
+
+```powershell
+py -m pipenv run python scripts/run_api.py
+```
 
 Open:
 
-    http://127.0.0.1:8000/docs
+```text
+http://127.0.0.1:8000/docs
+```
 
-Send one sonar image:
+## Git policy
 
-    curl -X POST http://127.0.0.1:8000/predict -F "file=@path/to/image.jpg"
+Do not commit:
+- data/
+- experiments/
+- external/
+- runs/
+- model weights
+- SLURM logs
+- generated result tables before the final run
 
-## Repository policy
-
-Raw data, processed data, checkpoints, training runs, large logs and model weights are not committed to Git.
-Tracked files are limited to source code, configs, final result tables, figures and lightweight metadata.
+Commit only source code, configs, final small report tables and figures.

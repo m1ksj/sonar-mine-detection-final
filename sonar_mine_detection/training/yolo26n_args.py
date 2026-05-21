@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import yaml
 
 
@@ -62,7 +60,3 @@ def build_yolo26n_train_args(
     )
 
     return train_args
-
-
-def default_output_dir(base_dir, run_name):
-    return Path(base_dir) / "yolo26n" / run_name
