@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 #SBATCH --job-name=sonar-final
 #SBATCH --output=experiments/slurm/final_%A_%a.out
 #SBATCH --error=experiments/slurm/final_%A_%a.err

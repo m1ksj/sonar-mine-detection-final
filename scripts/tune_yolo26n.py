@@ -90,7 +90,10 @@ def main():
 
     train_args = build_yolo26n_train_args(
         data_yaml=fold_data_yaml,
-        output_dir=Path(config["paths"]["experiments_dir"]) / "tuning",
+        output_dir=(
+            Path(config["paths"]["experiments_dir"]).resolve()
+            / "tuning"
+        ),
         run_name=run_name,
         image_size=config["tuning"]["image_size"],
         epochs=config["tuning"]["epochs"],
@@ -115,7 +118,10 @@ def main():
         data=str(fold_data_yaml),
         conf=settings["confidence"],
         plots=False,
-        project=str(Path(config["paths"]["experiments_dir"]) / "tuning_val"),
+        project=str(
+            Path(config["paths"]["experiments_dir"]).resolve()
+            / "tuning_val"
+        ),
         name=run_name,
         exist_ok=True,
     )

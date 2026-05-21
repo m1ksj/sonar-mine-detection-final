@@ -108,7 +108,22 @@ Raw data, processed data, checkpoints, training runs, large logs and model weigh
 
 Tracked files should be limited to source code, configs, small result tables, final figures and lightweight metadata.
 
+## Hábrók notes
 
+On Hábrók, load Python 3.11 before installing dependencies:
 
+    module purge
+    module load Python/3.11.5-GCCcore-13.2.0
+    python --version
 
+If PyTorch fails with missing CUDA libraries, reinstall the CUDA 12.1 wheels inside the Pipenv environment:
+
+    pipenv run pip uninstall -y torch torchvision torchaudio nvidia-cublas-cu13 nvidia-cuda-runtime-cu13 nvidia-cudnn-cu13 nvidia-cuda-nvrtc-cu13
+    pipenv run pip install --no-cache-dir --force-reinstall torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 --index-url https://download.pytorch.org/whl/cu121
+
+Before submitting SLURM jobs, create the output directory:
+
+    mkdir -p experiments/slurm
+
+Do not pull, merge or edit code in the Hábrók clone while array jobs are running.
 

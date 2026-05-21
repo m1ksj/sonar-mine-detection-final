@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 #SBATCH --job-name=yolo26n-tune
 #SBATCH --output=experiments/slurm/yolo26n_tune_%A_%a.out
 #SBATCH --error=experiments/slurm/yolo26n_tune_%A_%a.err

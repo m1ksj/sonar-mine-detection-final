@@ -75,7 +75,10 @@ def main():
 
     train_args = build_yolo26n_train_args(
         data_yaml=config["paths"]["yolo26n_data_yaml"],
-        output_dir=Path(config["paths"]["experiments_dir"]) / "final",
+        output_dir=(
+            Path(config["paths"]["experiments_dir"]).resolve()
+            / "final"
+        ),
         run_name=run_name,
         image_size=config["final_training"]["image_size"],
         epochs=config["final_training"]["epochs"],
@@ -102,7 +105,10 @@ def main():
         data=config["paths"]["yolo26n_data_yaml"],
         split="test",
         plots=False,
-        project=str(Path(config["paths"]["experiments_dir"]) / "final_test"),
+        project=str(
+            Path(config["paths"]["experiments_dir"]).resolve()
+            / "final_test"
+        ),
         name=run_name,
         exist_ok=True,
     )
