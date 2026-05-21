@@ -109,7 +109,7 @@ def write_cfgs(project_config, augmentation_config):
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument("--project-config", default="configs/project.yaml")
+    parser.add_argument("--config", default="configs/project.yaml")
     parser.add_argument("--aug-config", default="configs/augmentations.yaml")
     args = parser.parse_args()
 
