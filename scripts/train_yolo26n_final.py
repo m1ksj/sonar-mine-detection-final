@@ -1,4 +1,4 @@
-﻿from argparse import ArgumentParser
+from argparse import ArgumentParser
 import json
 from pathlib import Path
 import csv
@@ -41,7 +41,8 @@ def load_hparams(path, config):
     return {
         "learning_rate": config["tuning"]["learning_rates"][0],
         "batch_size": config["tuning"]["batch_sizes"][0],
-        "patience": config["tuning"]["patience_values"][0],
+        "optimizer": config["tuning"]["optimizers"][0],
+        "patience": config["tuning"]["patience"],
     }
 
 
@@ -88,6 +89,7 @@ def main():
         seed=int(row["seed"]),
         augmentation_key=row["augmentation"],
         augmentation_config="configs/augmentations.yaml",
+        optimizer=hparams["optimizer"],
     )
 
     start_time = time.time()
@@ -137,6 +139,7 @@ def main():
         "parameter_count": parameter_count,
         "train_save_dir": str(save_dir),
         "test_save_dir": str(getattr(test_results, "save_dir", "")),
+        "optimizer": hparams["optimizer"],
     }
 
     metadata_path = save_dir / "final_metadata.json"

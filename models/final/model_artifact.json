@@ -1,7 +1,0 @@
-﻿{
-  "model_name": "yolo26n_selected.pt",
-  "artifact_url": "",
-  "sha256": "",
-  "local_path": "models/final/yolo26n_selected.pt",
-  "note": "Fill artifact_url and sha256 after the final deployment model is uploaded externally."
-}

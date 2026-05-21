@@ -1,4 +1,4 @@
-﻿from pathlib import Path
+from pathlib import Path
 
 import yaml
 
@@ -35,6 +35,7 @@ def build_yolo26n_train_args(
     seed,
     augmentation_key,
     augmentation_config,
+    optimizer="SGD",
 ):
     train_args = {
         "data": str(data_yaml),
@@ -46,10 +47,11 @@ def build_yolo26n_train_args(
         "lr0": learning_rate,
         "patience": patience,
         "seed": seed,
-        "optimizer": "SGD",
+        "optimizer": optimizer,
         "exist_ok": True,
         "plots": False,
         "verbose": False,
+        "workers": 4,
     }
 
     train_args.update(

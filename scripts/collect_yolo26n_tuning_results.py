@@ -1,4 +1,4 @@
-﻿from argparse import ArgumentParser
+from argparse import ArgumentParser
 from pathlib import Path
 import csv
 
@@ -36,11 +36,12 @@ def make_run_name(row):
         f"fold{row['fold']}_"
         f"lr{row['learning_rate']}_"
         f"batch{row['batch_size']}_"
+        f"opt{row['optimizer']}_"
         f"patience{row['patience']}"
     )
 
 
-def read_last_result(results_path):
+def read_best_result(results_path):
     if not results_path.exists():
         return None
 
@@ -49,7 +50,13 @@ def read_last_result(results_path):
     if not rows:
         return None
 
-    return rows[-1]
+    metric = METRIC_COLUMNS["map50_95"]
+    valid_rows = [row for row in rows if row.get(metric, "") != ""]
+
+    if not valid_rows:
+        return None
+
+    return max(valid_rows, key=lambda row: float(row[metric]))
 
 
 def collect_results(plan_path, results_dir):
@@ -60,13 +67,14 @@ def collect_results(plan_path, results_dir):
     for plan_row in plan_rows:
         run_name = make_run_name(plan_row)
         results_path = results_dir / run_name / "results.csv"
-        result_row = read_last_result(results_path)
+        result_row = read_best_result(results_path)
 
         output_row = {
             "job_index": plan_row["job_index"],
             "fold": plan_row["fold"],
             "learning_rate": plan_row["learning_rate"],
             "batch_size": plan_row["batch_size"],
+            "optimizer": plan_row["optimizer"],
             "patience": plan_row["patience"],
             "run_name": run_name,
             "status": "missing" if result_row is None else "done",
@@ -91,7 +99,7 @@ def main():
     )
     parser.add_argument(
         "--results-dir",
-        default="experiments/tuning_val",
+        default="experiments/tuning",
     )
     parser.add_argument(
         "--output",

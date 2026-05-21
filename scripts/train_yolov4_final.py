@@ -1,11 +1,17 @@
-﻿from argparse import ArgumentParser
+from argparse import ArgumentParser
+import csv
 import json
 from pathlib import Path
-import csv
+import re
 import subprocess
 import time
 
 import yaml
+
+
+MAP50_PATTERN = re.compile(
+    r"mean average precision \(mAP@0\.50\) = ([0-9.]+)"
+)
 
 
 def load_yaml(path):
@@ -36,6 +42,87 @@ def cfg_for_augmentation(config, augmentation):
     raise ValueError(f"Unknown YOLOv4 augmentation: {augmentation}")
 
 
+def read_darknet_data(path):
+    values = {}
+
+    with open(path, "r", encoding="utf-8") as file:
+        for line in file:
+            if "=" not in line:
+                continue
+
+            key, value = line.split("=", 1)
+            values[key.strip()] = value.strip()
+
+    return values
+
+
+def write_darknet_data(path, values):
+    lines = [
+        f"classes = {values['classes']}",
+        f"train = {values['train']}",
+        f"valid = {values['valid']}",
+        f"names = {values['names']}",
+        f"backup = {values['backup']}",
+    ]
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def make_run_name(row):
+    return (
+        f"final_yolov4_"
+        f"{row['augmentation']}_"
+        f"seed{row['seed']}"
+    )
+
+
+def prepare_run_data(base_data_path, test_list_path, run_dir):
+    base_values = read_darknet_data(base_data_path)
+    backup_dir = run_dir / "backup"
+    backup_dir.mkdir(parents=True, exist_ok=True)
+
+    train_data_path = run_dir / "obj_train.data"
+    test_data_path = run_dir / "obj_test.data"
+
+    train_values = base_values.copy()
+    train_values["backup"] = backup_dir.resolve().as_posix()
+    write_darknet_data(train_data_path, train_values)
+
+    test_values = train_values.copy()
+    test_values["valid"] = Path(test_list_path).resolve().as_posix()
+    write_darknet_data(test_data_path, test_values)
+
+    return train_data_path, test_data_path, backup_dir
+
+
+def parse_map50(text):
+    match = MAP50_PATTERN.search(text)
+    return "" if match is None else match.group(1)
+
+
+def run_test_map(darknet_bin, data_path, cfg_path, weights_path, output_path):
+    if not weights_path.exists():
+        return ""
+
+    command = [
+        darknet_bin,
+        "detector",
+        "map",
+        str(data_path),
+        str(cfg_path),
+        str(weights_path),
+    ]
+
+    result = subprocess.run(
+        command,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    text = result.stdout + "\n" + result.stderr
+    output_path.write_text(text, encoding="utf-8")
+    return parse_map50(text)
+
+
 def main():
     parser = ArgumentParser()
     parser.add_argument("--config", default="configs/project.yaml")
@@ -55,33 +142,46 @@ def main():
         raise ValueError("This script only runs YOLOv4 final jobs.")
 
     cfg_path = cfg_for_augmentation(config, row["augmentation"])
-    data_path = Path(config["paths"]["darknet_data_dir"]) / "obj.data"
+    darknet_dir = Path(config["paths"]["darknet_data_dir"])
+    base_data_path = darknet_dir / "obj.data"
+    test_list_path = darknet_dir / "test.txt"
+    run_name = make_run_name(row)
+    run_dir = Path(config["paths"]["experiments_dir"]) / "final" / run_name
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    train_data_path, test_data_path, backup_dir = prepare_run_data(
+        base_data_path=base_data_path,
+        test_list_path=test_list_path,
+        run_dir=run_dir,
+    )
 
     command = [
         args.darknet_bin,
         "detector",
         "train",
-        str(data_path),
+        str(train_data_path),
         str(cfg_path),
         args.pretrained,
         "-dont_show",
         "-map",
+        "-seed",
+        str(row["seed"]),
     ]
-
-    run_name = (
-        f"final_yolov4_"
-        f"{row['augmentation']}_"
-        f"seed{row['seed']}"
-    )
 
     start_time = time.time()
     subprocess.run(command, check=True)
 
-    metadata_dir = (
-        Path(config["paths"]["experiments_dir"])
-        / "final_metadata"
+    weights_prefix = Path(cfg_path).stem
+    best_weights = backup_dir / f"{weights_prefix}_best.weights"
+    last_weights = backup_dir / f"{weights_prefix}_last.weights"
+    test_metrics_path = run_dir / "test_metrics.txt"
+    test_map50 = run_test_map(
+        darknet_bin=args.darknet_bin,
+        data_path=test_data_path,
+        cfg_path=cfg_path,
+        weights_path=best_weights,
+        output_path=test_metrics_path,
     )
-    metadata_dir.mkdir(parents=True, exist_ok=True)
 
     metadata = {
         "job_index": args.job_index,
@@ -91,10 +191,22 @@ def main():
         "run_name": run_name,
         "runtime_seconds": time.time() - start_time,
         "cfg_path": str(cfg_path),
-        "data_path": str(data_path),
+        "data_path": str(train_data_path),
+        "test_data_path": str(test_data_path),
+        "backup_dir": str(backup_dir),
+        "best_weights": str(best_weights),
+        "last_weights": str(last_weights),
+        "best_weights_mb": (
+            best_weights.stat().st_size / 1_000_000
+            if best_weights.exists()
+            else ""
+        ),
+        "parameter_count": "",
+        "test_map50": test_map50,
+        "test_metrics_path": str(test_metrics_path),
     }
 
-    metadata_path = metadata_dir / f"{run_name}.json"
+    metadata_path = run_dir / "final_metadata.json"
     metadata_path.write_text(
         json.dumps(metadata, indent=2),
         encoding="utf-8",
