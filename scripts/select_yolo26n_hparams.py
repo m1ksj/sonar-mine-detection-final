@@ -1,4 +1,4 @@
-﻿from argparse import ArgumentParser
+from argparse import ArgumentParser
 from collections import defaultdict
 from pathlib import Path
 import csv
@@ -9,6 +9,7 @@ import yaml
 GROUP_KEYS = [
     "learning_rate",
     "batch_size",
+    "optimizer",
     "patience",
 ]
 
@@ -65,6 +66,7 @@ def write_best_config(path, best_row):
     config = {
         "learning_rate": float(best_row["learning_rate"]),
         "batch_size": int(best_row["batch_size"]),
+        "optimizer": best_row["optimizer"],
         "patience": int(best_row["patience"]),
         "mean_map50_95": float(best_row["mean_map50_95"]),
         "n_folds": int(best_row["n_folds"]),

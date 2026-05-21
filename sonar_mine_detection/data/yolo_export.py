@@ -1,4 +1,4 @@
-﻿from pathlib import Path
+from pathlib import Path
 from shutil import copyfile
 
 
@@ -12,7 +12,7 @@ def read_split_csv(path):
         return list(csv.DictReader(file))
 
 
-def copy_split_files(rows, output_root, split_name):
+def copy_split_files(rows, output_root, split_name, darknet_layout=False):
     output_root = Path(output_root)
     image_dir = output_root / "images" / split_name
     label_dir = output_root / "labels" / split_name
@@ -35,6 +35,10 @@ def copy_split_files(rows, output_root, split_name):
             copyfile(label_path, target_label)
         else:
             target_label.write_text("", encoding="utf-8")
+
+        if darknet_layout:
+            darknet_label = image_dir / label_path.name
+            copyfile(target_label, darknet_label)
 
         copied_images.append(target_image.resolve())
 
@@ -61,6 +65,8 @@ def write_yolo26n_yaml(output_root):
 
 def write_darknet_files(output_root, split_images):
     output_root = Path(output_root)
+    backup_dir = output_root / "backup"
+    backup_dir.mkdir(parents=True, exist_ok=True)
 
     names_path = output_root / "obj.names"
     data_path = output_root / "obj.data"
@@ -78,7 +84,7 @@ def write_darknet_files(output_root, split_images):
         f"train = {(output_root / 'train.txt').resolve().as_posix()}",
         f"valid = {(output_root / 'valid.txt').resolve().as_posix()}",
         f"names = {names_path.resolve().as_posix()}",
-        f"backup = {(output_root / 'backup').resolve().as_posix()}",
+        f"backup = {backup_dir.resolve().as_posix()}",
     ]
 
     data_path.write_text("\n".join(data_lines) + "\n", encoding="utf-8")
@@ -99,6 +105,7 @@ def export_yolo_datasets(splits_dir, yolo26n_dir, darknet_dir):
             rows,
             darknet_dir,
             split_name,
+            darknet_layout=True,
         )
 
     write_yolo26n_yaml(yolo26n_dir)

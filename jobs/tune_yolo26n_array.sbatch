@@ -10,9 +10,12 @@
 
 set -e
 
+module purge
+module load Python/3.11.5-GCCcore-13.2.0
+module load CUDA/12.1.1
+
 export PATH="$HOME/.local/bin:$PATH"
 
 mkdir -p experiments/slurm
 
 pipenv run python scripts/tune_yolo26n.py --job-index "${SLURM_ARRAY_TASK_ID}"
-

@@ -1,4 +1,4 @@
-﻿from argparse import ArgumentParser
+from argparse import ArgumentParser
 from pathlib import Path
 import csv
 import json
@@ -72,11 +72,7 @@ def run_name(row):
 def metadata_path(row, experiments_dir):
     experiments_dir = Path(experiments_dir)
     name = run_name(row)
-
-    if row["model"] == "yolo26n":
-        return experiments_dir / "final" / name / "final_metadata.json"
-
-    return experiments_dir / "final_metadata" / f"{name}.json"
+    return experiments_dir / "final" / name / "final_metadata.json"
 
 
 def test_results_path(row, experiments_dir):
@@ -88,6 +84,26 @@ def test_results_path(row, experiments_dir):
     return Path(experiments_dir) / "final_test" / name / "results.csv"
 
 
+def collect_yolo26n_metrics(row, experiments_dir):
+    metrics = read_last_metrics(
+        test_results_path(row, experiments_dir) or Path("missing")
+    )
+    return {
+        output_name: metrics.get(metric_name, "")
+        for output_name, metric_name in METRIC_COLUMNS.items()
+    }
+
+
+def collect_yolov4_metrics(meta):
+    return {
+        "test_precision": "",
+        "test_recall": "",
+        "test_map50": meta.get("test_map50", ""),
+        "test_map50_95": "",
+        "test_fitness": "",
+    }
+
+
 def collect(plan_path, experiments_dir):
     plan_rows = read_csv(plan_path)
     output_rows = []
@@ -95,10 +111,6 @@ def collect(plan_path, experiments_dir):
     for row in plan_rows:
         name = run_name(row)
         meta = read_json(metadata_path(row, experiments_dir))
-        test_metrics = read_last_metrics(
-            test_results_path(row, experiments_dir)
-            or Path("missing")
-        )
 
         output_row = {
             "job_index": row["job_index"],
@@ -113,8 +125,10 @@ def collect(plan_path, experiments_dir):
             "parameter_count": meta.get("parameter_count", ""),
         }
 
-        for output_name, metric_name in METRIC_COLUMNS.items():
-            output_row[output_name] = test_metrics.get(metric_name, "")
+        if row["model"] == "yolo26n":
+            output_row.update(collect_yolo26n_metrics(row, experiments_dir))
+        else:
+            output_row.update(collect_yolov4_metrics(meta))
 
         output_rows.append(output_row)
 

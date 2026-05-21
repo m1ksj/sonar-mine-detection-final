@@ -1,12 +1,12 @@
-﻿from argparse import ArgumentParser
+from argparse import ArgumentParser
 from itertools import product
 from pathlib import Path
 import csv
 
-import yaml
-
 
 def load_yaml(path):
+    import yaml
+
     with open(path, "r", encoding="utf-8") as file:
         return yaml.safe_load(file)
 
@@ -28,22 +28,24 @@ def build_plan(config):
     folds = range(config["cv"]["folds"])
     learning_rates = config["tuning"]["learning_rates"]
     batch_sizes = config["tuning"]["batch_sizes"]
-    patience_values = config["tuning"]["patience_values"]
+    optimizers = config["tuning"]["optimizers"]
+    patience = config["tuning"]["patience"]
 
     grid = product(
         folds,
         learning_rates,
         batch_sizes,
-        patience_values,
+        optimizers,
     )
 
-    for fold, lr, batch, patience in grid:
+    for fold, lr, batch, optimizer in grid:
         rows.append(
             {
                 "job_index": job_index,
                 "fold": fold,
                 "learning_rate": lr,
                 "batch_size": batch,
+                "optimizer": optimizer,
                 "patience": patience,
             }
         )
