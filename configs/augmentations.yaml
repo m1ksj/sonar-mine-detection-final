@@ -1,4 +1,4 @@
-﻿yolov4_default:
+yolov4_default:
   framework: "darknet"
   mosaic: 1
   jitter: 0.3
@@ -15,27 +15,6 @@ yolov4_no_aug:
   exposure: 1
   hue: 0
   random: 0
-
-# Values read from ultralytics.cfg.DEFAULT_CFG_DICT with ultralytics==8.4.52
-yolo26n_default:
-  framework: "ultralytics"
-  mosaic: 1.0
-  close_mosaic: 10
-  mixup: 0.0
-  cutmix: 0.0
-  copy_paste: 0.0
-  degrees: 0.0
-  translate: 0.1
-  scale: 0.5
-  shear: 0.0
-  perspective: 0.0
-  fliplr: 0.5
-  flipud: 0.0
-  hsv_h: 0.015
-  hsv_s: 0.7
-  hsv_v: 0.4
-  erasing: 0.4
-  auto_augment: "randaugment"
 
 # Controlled Ultralytics approximation of YOLOv4-style augmentation; not identical across frameworks.
 yolo26n_yolov4_style:

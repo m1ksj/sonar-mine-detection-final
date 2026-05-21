@@ -32,18 +32,8 @@ def read_plan_row(path, job_index):
     raise ValueError(f"Unknown final job index: {job_index}")
 
 
-def load_hparams(path, config):
-    path = Path(path)
-
-    if path.exists():
-        return load_yaml(path)
-
-    return {
-        "learning_rate": config["tuning"]["learning_rates"][0],
-        "batch_size": config["tuning"]["batch_sizes"][0],
-        "optimizer": config["tuning"]["optimizers"][0],
-        "patience": config["tuning"]["patience"],
-    }
+def load_hparams(path):
+    return load_yaml(path)
 
 
 def main():
