@@ -7,9 +7,12 @@ name = "pypi"
 pyyaml = "*"
 pandas = "*"
 scikit-learn = "*"
-pillow = "*"
 requests = "*"
 ultralytics = "*"
+fastapi = "*"
+uvicorn = "*"
+pillow = "*"
+python-multipart = "*"
 
 [dev-packages]
 pre-commit = "*"
