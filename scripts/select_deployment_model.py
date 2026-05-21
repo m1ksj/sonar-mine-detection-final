@@ -31,30 +31,25 @@ def main():
 
     config = load_yaml(args.config)
     deployment = config["deployment"]
-    rows = read_csv(args.results)
+    metric = deployment["selection_metric"]
 
     candidates = [
-        row for row in rows
-        if row["status"] == "done"
-        and row["model"] == deployment["selection_model"]
+        row for row in read_csv(args.results)
+        if row["model"] == deployment["selection_model"]
         and row["augmentation"] == deployment["selection_augmentation"]
-        and row[deployment["selection_metric"]] != ""
+        and row[metric] != ""
     ]
 
     if not candidates:
         raise ValueError("No deployment candidate found.")
 
-    selected = max(
-        candidates,
-        key=lambda row: float(row[deployment["selection_metric"]]),
-    )
-
+    selected = max(candidates, key=lambda row: float(row[metric]))
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(
         json.dumps(
             {
-                "selection_metric": deployment["selection_metric"],
+                "selection_metric": metric,
                 "selected": selected,
             },
             indent=2,

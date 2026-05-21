@@ -38,9 +38,6 @@ def write_csv(path, rows):
 
 
 def read_json(path):
-    if not path.exists():
-        return {}
-
     with path.open("r", encoding="utf-8") as file:
         return json.load(file)
 
@@ -55,45 +52,38 @@ def run_name(row):
 
 def metric_values(row, mapping):
     return {
-        output_name: row.get(source_name, "")
+        output_name: row[source_name]
         for output_name, source_name in mapping.items()
     }
 
 
 def best_validation_metrics(path):
-    if not path.exists():
-        return {key: "" for key in VAL_METRICS}
-
     rows = [
         row for row in read_csv(path)
         if row.get("metrics/mAP50-95(B)", "") != ""
     ]
 
     if not rows:
-        return {key: "" for key in VAL_METRICS}
+        raise ValueError(f"No validation metrics found in {path}")
 
     best = max(rows, key=lambda row: float(row["metrics/mAP50-95(B)"]))
     return metric_values(best, VAL_METRICS)
 
 
 def last_test_metrics(path):
-    if not path.exists():
-        return {key: "" for key in TEST_METRICS}
-
     rows = read_csv(path)
 
     if not rows:
-        return {key: "" for key in TEST_METRICS}
+        raise ValueError(f"No test metrics found in {path}")
 
     return metric_values(rows[-1], TEST_METRICS)
 
 
 def collect(plan_path, experiments_dir):
-    plan_rows = read_csv(plan_path)
-    experiments_dir = Path(experiments_dir)
     output_rows = []
+    experiments_dir = Path(experiments_dir)
 
-    for row in plan_rows:
+    for row in read_csv(plan_path):
         name = run_name(row)
         run_dir = experiments_dir / "final" / name
         metadata = read_json(run_dir / "final_metadata.json")
@@ -104,30 +94,23 @@ def collect(plan_path, experiments_dir):
             "augmentation": row["augmentation"],
             "seed": row["seed"],
             "run_name": name,
-            "status": "done" if metadata else "missing",
-            "runtime_seconds": metadata.get("runtime_seconds", ""),
-            "best_weights": metadata.get("best_weights", ""),
-            "best_weights_mb": metadata.get("best_weights_mb", ""),
-            "parameter_count": metadata.get("parameter_count", ""),
+            "runtime_seconds": metadata["runtime_seconds"],
+            "best_weights": metadata["best_weights"],
+            "best_weights_mb": metadata["best_weights_mb"],
+            "parameter_count": metadata["parameter_count"],
         }
 
         if row["model"] == "yolo26n":
+            test_path = experiments_dir / "final_test" / name / "results.csv"
             output.update(best_validation_metrics(run_dir / "results.csv"))
-            output.update(
-                last_test_metrics(
-                    experiments_dir
-                    / "final_test"
-                    / name
-                    / "results.csv"
-                )
-            )
+            output.update(last_test_metrics(test_path))
         else:
             output.update({key: "" for key in VAL_METRICS})
             output.update(
                 {
                     "test_precision": "",
                     "test_recall": "",
-                    "test_map50": metadata.get("test_map50", ""),
+                    "test_map50": metadata["test_map50"],
                     "test_map50_95": "",
                 }
             )

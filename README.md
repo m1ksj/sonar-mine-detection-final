@@ -22,7 +22,7 @@ Final comparison:
 - YOLO26n YOLOv4-style augmentation
 - YOLO26n no augmentation
 - seeds: 117, 221, 333
-- final reporting: held-out test metrics as mean ? standard deviation over seeds
+- final reporting: held-out test metrics as mean +/- standard deviation over seeds
 
 Deployment selection:
 - select only among YOLO26n YOLOv4-style final runs
@@ -38,13 +38,35 @@ py -m pipenv run python -m unittest discover tests
 py -m pipenv run pre-commit run --all-files
 ```
 
-## Fresh H?br?k run
+## Habrok access
 
-Start from the H?br?k login node:
+Connect from a local terminal:
 
 ```bash
+ssh <s-number>@login1.hb.hpc.rug.nl
+```
+
+For this project account:
+
+```bash
+ssh s5626595@login1.hb.hpc.rug.nl
+```
+
+All following commands are executed on the Habrok login node.
+
+## Fresh Habrok run
+
+Start from a clean clone:
+
+```bash
+cd $HOME
+rm -rf sonar-mine-detection-final
+rm -rf /scratch/$USER/sonar-mine-detection-final
+
 git clone https://github.com/m1ksj/sonar-mine-detection sonar-mine-detection-final
 cd sonar-mine-detection-final
+git checkout dev
+git pull origin dev
 ```
 
 Create scratch-backed runtime folders:
@@ -70,7 +92,7 @@ python -m pip install --user pipenv
 pipenv install --dev
 ```
 
-Install the CUDA 12.1 PyTorch wheels used by the GPU jobs:
+Install CUDA 12.1 PyTorch wheels:
 
 ```bash
 pipenv run pip install --no-cache-dir --force-reinstall \
@@ -112,9 +134,9 @@ ARCH=compute_70,compute_80
 ```
 
 Reason:
-- `OPENCV=1` is required because `yolov4_default.cfg` uses `mosaic=1`.
-- `CUDNN=0` and `CUDNN_HALF=0` are used for stable H?br?k execution.
-- `compute_70` supports V100 nodes and `compute_80` supports A100 nodes.
+- OPENCV=1 is required because yolov4_default.cfg uses mosaic=1.
+- CUDNN=0 and CUDNN_HALF=0 are used for stable Habrok execution.
+- compute_70 supports V100 nodes and compute_80 supports A100 nodes.
 
 Check Darknet on a GPU node:
 
@@ -169,7 +191,7 @@ pipenv run python scripts/select_deployment_model.py
 pipenv run python scripts/copy_selected_model.py
 ```
 
-The main result tables are:
+Main result tables:
 
 ```text
 reports/tables/yolo26n_tuning_results.csv
@@ -178,12 +200,26 @@ reports/tables/final_run_results.csv
 reports/tables/final_seed_summary.csv
 ```
 
-YOLO26n learning curves are stored in each run folder as `results.csv`.
-YOLOv4 weights and logs are stored under each run-specific `experiments/final/final_yolov4_...` folder.
+YOLO26n learning curves are stored in each run folder as results.csv.
+YOLOv4 weights and logs are stored under each run-specific experiments/final/final_yolov4_... folder.
+
+## Copy result tables back to the local repo
+
+Run this from local Windows PowerShell, not from the SSH session:
+
+```powershell
+scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/reports/tables/yolo26n_tuning_results.csv reports/tables/
+scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/reports/tables/yolo26n_hparam_summary.csv reports/tables/
+scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/reports/tables/final_run_results.csv reports/tables/
+scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/reports/tables/final_seed_summary.csv reports/tables/
+scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/configs/yolo26n_best.yaml configs/
+```
+
+Do not commit model weights.
 
 ## API
 
-Start locally after `models/final/yolo26n_selected.pt` exists:
+Start locally after models/final/yolo26n_selected.pt exists:
 
 ```powershell
 py -m pipenv run python scripts/run_api.py

@@ -32,14 +32,11 @@ def write_csv(path, rows):
 
 
 def numeric_values(rows, metric):
-    values = []
-
-    for row in rows:
-        value = row.get(metric, "")
-        if value != "":
-            values.append(float(value))
-
-    return values
+    return [
+        float(row[metric])
+        for row in rows
+        if row.get(metric, "") != ""
+    ]
 
 
 def mean(values):
@@ -52,16 +49,14 @@ def std(values):
 
     value_mean = mean(values)
     variance = sum((value - value_mean) ** 2 for value in values)
-    variance = variance / (len(values) - 1)
-    return math.sqrt(variance)
+    return math.sqrt(variance / (len(values) - 1))
 
 
 def summarize(rows):
     groups = defaultdict(list)
 
     for row in rows:
-        if row["status"] == "done":
-            groups[(row["model"], row["augmentation"])].append(row)
+        groups[(row["model"], row["augmentation"])].append(row)
 
     summary = []
 
@@ -74,13 +69,8 @@ def summarize(rows):
 
         for metric in METRICS:
             values = numeric_values(group_rows, metric)
-
-            if values:
-                output[f"{metric}_mean"] = mean(values)
-                output[f"{metric}_std"] = std(values)
-            else:
-                output[f"{metric}_mean"] = ""
-                output[f"{metric}_std"] = ""
+            output[f"{metric}_mean"] = mean(values) if values else ""
+            output[f"{metric}_std"] = std(values) if values else ""
 
         summary.append(output)
 
