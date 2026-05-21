@@ -63,7 +63,7 @@ cd $HOME
 rm -rf sonar-mine-detection-final
 rm -rf /scratch/$USER/sonar-mine-detection-final
 
-git clone https://github.com/m1ksj/sonar-mine-detection sonar-mine-detection-final
+git clone https://github.com/m1ksj/sonar-mine-detection-final.git sonar-mine-detection-final
 cd sonar-mine-detection-final
 git checkout dev
 git pull origin dev
