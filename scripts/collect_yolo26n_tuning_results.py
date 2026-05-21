@@ -8,7 +8,6 @@ METRIC_COLUMNS = {
     "recall": "metrics/recall(B)",
     "map50": "metrics/mAP50(B)",
     "map50_95": "metrics/mAP50-95(B)",
-    "fitness": "fitness",
 }
 
 
