@@ -74,8 +74,6 @@ Prepare data and plan tables:
     pipenv run python scripts/setup_yolov4_configs.py --config configs/project.yaml
     pipenv run python scripts/create_yolo26n_tuning_plan.py
     pipenv run python scripts/create_final_training_plan.py
-    pipenv run python scripts/export_augmentation_settings.py
-    pipenv run python scripts/check_ready.py
 
 Prepare Darknet for YOLOv4:
 
@@ -123,4 +121,4 @@ Send one sonar image:
 ## Repository policy
 
 Raw data, processed data, checkpoints, training runs, large logs and model weights are not committed to Git.
-Tracked files are limited to source code, configs, small result tables, figures and lightweight metadata.
+Tracked files are limited to source code, configs, final result tables, figures and lightweight metadata.
