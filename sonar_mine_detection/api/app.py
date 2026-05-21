@@ -78,15 +78,6 @@ def validate_image(file_path):
         ) from error
 
 
-@app.get("/health")
-def health():
-    return {
-        "status": "ok",
-        "model_path": str(MODEL_PATH),
-        "model_available": MODEL_PATH.exists(),
-    }
-
-
 @app.post("/predict", response_model=PredictionResponse)
 async def predict(file: UploadFile = File(...)):
     if file.content_type not in {"image/jpeg", "image/png"}:

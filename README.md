@@ -127,3 +127,21 @@ Before submitting SLURM jobs, create the output directory:
 
 Do not pull, merge or edit code in the Hábrók clone while array jobs are running.
 
+## API
+
+Start the local API:
+
+    python scripts/run_api.py
+
+Open the FastAPI documentation:
+
+    http://127.0.0.1:8000/docs
+
+Send one sonar image:
+
+    curl -X POST http://127.0.0.1:8000/predict -F "file=@path/to/image.jpg"
+
+The /predict endpoint accepts a JPEG or PNG image and returns detected MILCO/NOMBO objects with class names, confidence scores and bounding boxes. The selected deployment model must first be available through:
+
+    python scripts/setup_model.py
+
