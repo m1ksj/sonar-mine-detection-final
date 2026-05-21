@@ -114,7 +114,7 @@ def main():
     args = parser.parse_args()
 
     write_cfgs(
-        project_config=args.project_config,
+        project_config=args.config,
         augmentation_config=args.aug_config,
     )
 
