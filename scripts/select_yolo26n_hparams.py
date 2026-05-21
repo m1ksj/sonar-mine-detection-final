@@ -23,9 +23,6 @@ def write_csv(path, rows):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    if not rows:
-        return
-
     with path.open("w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=rows[0].keys())
         writer.writeheader()
@@ -40,9 +37,6 @@ def group_results(rows):
     groups = defaultdict(list)
 
     for row in rows:
-        if row["status"] != "done" or row["map50_95"] == "":
-            continue
-
         key = tuple(row[name] for name in GROUP_KEYS)
         groups[key].append(float(row["map50_95"]))
 
@@ -94,14 +88,8 @@ def main():
     )
     args = parser.parse_args()
 
-    rows = read_csv(args.input)
-    summary_rows = group_results(rows)
+    summary_rows = group_results(read_csv(args.input))
     write_csv(args.summary, summary_rows)
-
-    if not summary_rows:
-        print("No completed tuning results found.")
-        return
-
     write_best_config(args.best_config, summary_rows[0])
     print(f"Best YOLO26n setup written to: {args.best_config}")
 

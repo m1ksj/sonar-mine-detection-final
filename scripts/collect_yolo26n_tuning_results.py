@@ -21,9 +21,6 @@ def write_csv(path, rows):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    if not rows:
-        return
-
     with path.open("w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=rows[0].keys())
         writer.writeheader()
@@ -41,33 +38,20 @@ def make_run_name(row):
     )
 
 
-def read_best_result(results_path):
-    if not results_path.exists():
-        return None
-
+def best_result(results_path):
     rows = read_csv(results_path)
-
-    if not rows:
-        return None
-
     metric = METRIC_COLUMNS["map50_95"]
-    valid_rows = [row for row in rows if row.get(metric, "") != ""]
-
-    if not valid_rows:
-        return None
-
-    return max(valid_rows, key=lambda row: float(row[metric]))
+    rows = [row for row in rows if row[metric] != ""]
+    return max(rows, key=lambda row: float(row[metric]))
 
 
 def collect_results(plan_path, results_dir):
-    plan_rows = read_csv(plan_path)
-    results_dir = Path(results_dir)
     output_rows = []
 
-    for plan_row in plan_rows:
+    for plan_row in read_csv(plan_path):
         run_name = make_run_name(plan_row)
-        results_path = results_dir / run_name / "results.csv"
-        result_row = read_best_result(results_path)
+        results_path = Path(results_dir) / run_name / "results.csv"
+        result_row = best_result(results_path)
 
         output_row = {
             "job_index": plan_row["job_index"],
@@ -77,14 +61,11 @@ def collect_results(plan_path, results_dir):
             "optimizer": plan_row["optimizer"],
             "patience": plan_row["patience"],
             "run_name": run_name,
-            "status": "missing" if result_row is None else "done",
             "results_path": str(results_path),
         }
 
         for output_name, metric_name in METRIC_COLUMNS.items():
-            output_row[output_name] = (
-                "" if result_row is None else result_row.get(metric_name, "")
-            )
+            output_row[output_name] = result_row[metric_name]
 
         output_rows.append(output_row)
 
@@ -97,22 +78,15 @@ def main():
         "--plan",
         default="reports/tables/yolo26n_tuning_plan.csv",
     )
-    parser.add_argument(
-        "--results-dir",
-        default="experiments/tuning",
-    )
+    parser.add_argument("--results-dir", default="experiments/tuning")
     parser.add_argument(
         "--output",
         default="reports/tables/yolo26n_tuning_results.csv",
     )
     args = parser.parse_args()
 
-    rows = collect_results(
-        plan_path=args.plan,
-        results_dir=args.results_dir,
-    )
+    rows = collect_results(args.plan, args.results_dir)
     write_csv(args.output, rows)
-
     print(f"YOLO26n tuning results written: {len(rows)}")
 
 

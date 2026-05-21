@@ -58,8 +58,6 @@ deployment:
   selection_model: "yolo26n"
   selection_augmentation: "yolo26n_yolov4_style"
   selection_metric: "val_map50_95"
-  artifact_url: ""
-  artifact_sha256: ""
   local_model_path: "models/final/yolo26n_selected.pt"
 
 paths:

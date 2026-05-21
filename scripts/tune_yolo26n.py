@@ -37,30 +37,6 @@ def read_plan_row(path, job_index):
     raise ValueError(f"Unknown tuning job index: {job_index}")
 
 
-def read_manual_args(args):
-    required_values = [
-        args.fold,
-        args.lr,
-        args.batch,
-        args.optimizer,
-        args.patience,
-    ]
-
-    if any(value is None for value in required_values):
-        raise ValueError(
-            "Use --job-index or provide fold/lr/batch/optimizer/patience."
-        )
-
-    return {
-        "job_index": "manual",
-        "fold": args.fold,
-        "lr": args.lr,
-        "batch": args.batch,
-        "optimizer": args.optimizer,
-        "patience": args.patience,
-    }
-
-
 def make_run_name(settings):
     return (
         f"job{settings['job_index']}_"
@@ -79,28 +55,18 @@ def main():
         "--plan",
         default="reports/tables/yolo26n_tuning_plan.csv",
     )
-    parser.add_argument("--job-index", type=int, default=None)
-    parser.add_argument("--fold", type=int, default=None)
-    parser.add_argument("--lr", type=float, default=None)
-    parser.add_argument("--batch", type=int, default=None)
-    parser.add_argument("--optimizer", default=None)
-    parser.add_argument("--patience", type=int, default=None)
+    parser.add_argument("--job-index", type=int, required=True)
     args = parser.parse_args()
 
     config = load_yaml(args.config)
-
-    if args.job_index is None:
-        settings = read_manual_args(args)
-    else:
-        settings = read_plan_row(args.plan, args.job_index)
-
+    settings = read_plan_row(args.plan, args.job_index)
     run_name = make_run_name(settings)
 
-    fold_dir = (
+    fold_data_yaml = (
         Path(config["paths"]["yolo26n_cv_dir"])
         / f"fold_{settings['fold']}"
+        / "data.yaml"
     )
-    fold_data_yaml = fold_dir / "data.yaml"
 
     train_args = build_yolo26n_train_args(
         data_yaml=fold_data_yaml,
@@ -120,8 +86,7 @@ def main():
         optimizer=settings["optimizer"],
     )
 
-    model = YOLO(config["tuning"]["model"])
-    model.train(**train_args)
+    YOLO(config["tuning"]["model"]).train(**train_args)
 
 
 if __name__ == "__main__":

@@ -56,7 +56,7 @@ def main():
     if row["model"] != "yolo26n":
         raise ValueError("This script only runs YOLO26n final jobs.")
 
-    hparams = load_hparams(args.hparams, config)
+    hparams = load_hparams(args.hparams)
 
     run_name = (
         f"final_yolo26n_"
@@ -90,8 +90,7 @@ def main():
     save_dir = Path(results.save_dir)
     best_weights = save_dir / "weights" / "best.pt"
 
-    if best_weights.exists():
-        model = YOLO(best_weights)
+    model = YOLO(best_weights)
 
     test_results = model.val(
         data=config["paths"]["yolo26n_data_yaml"],
@@ -121,11 +120,7 @@ def main():
         "run_name": run_name,
         "runtime_seconds": time.time() - start_time,
         "best_weights": str(best_weights),
-        "best_weights_mb": (
-            best_weights.stat().st_size / 1_000_000
-            if best_weights.exists()
-            else ""
-        ),
+        "best_weights_mb": best_weights.stat().st_size / 1_000_000,
         "parameter_count": parameter_count,
         "train_save_dir": str(save_dir),
         "test_save_dir": str(getattr(test_results, "save_dir", "")),

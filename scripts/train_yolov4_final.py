@@ -100,9 +100,6 @@ def parse_map50(text):
 
 
 def run_test_map(darknet_bin, data_path, cfg_path, weights_path, output_path):
-    if not weights_path.exists():
-        return ""
-
     command = [
         darknet_bin,
         "detector",
@@ -196,11 +193,7 @@ def main():
         "backup_dir": str(backup_dir),
         "best_weights": str(best_weights),
         "last_weights": str(last_weights),
-        "best_weights_mb": (
-            best_weights.stat().st_size / 1_000_000
-            if best_weights.exists()
-            else ""
-        ),
+        "best_weights_mb": best_weights.stat().st_size / 1_000_000,
         "parameter_count": "",
         "test_map50": test_map50,
         "test_metrics_path": str(test_metrics_path),
