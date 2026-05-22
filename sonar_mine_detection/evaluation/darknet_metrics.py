@@ -40,19 +40,25 @@ def parse_darknet_map_text(text):
     summary_match = SUMMARY_PATTERN.search(text)
     map_match = MAP_PATTERN.search(text)
 
-    if summary_match is None:
-        raise ValueError("Darknet precision/recall/F1 line not found.")
-
     if map_match is None:
         raise ValueError("Darknet mAP line not found.")
 
     aggregate = {
-        "test_precision": float(summary_match.group("precision")),
-        "test_recall": float(summary_match.group("recall")),
-        "test_f1": float(summary_match.group("f1")),
+        "test_precision": "",
+        "test_recall": "",
+        "test_f1": "",
         "test_map50": float(map_match.group("map")),
         "test_map50_95": "",
     }
+
+    if summary_match is not None:
+        aggregate.update(
+            {
+                "test_precision": float(summary_match.group("precision")),
+                "test_recall": float(summary_match.group("recall")),
+                "test_f1": float(summary_match.group("f1")),
+            }
+        )
 
     return aggregate, class_rows
 
