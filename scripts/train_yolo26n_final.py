@@ -112,6 +112,18 @@ def main():
             for parameter in model.model.parameters()
         )
 
+    metrics_path = save_dir / "test_metrics.json"
+    metrics_values = {
+        "test_precision": float(test_results.box.mp),
+        "test_recall": float(test_results.box.mr),
+        "test_map50": float(test_results.box.map50),
+        "test_map50_95": float(test_results.box.map),
+    }
+    metrics_path.write_text(
+        json.dumps(metrics_values, indent=2),
+        encoding="utf-8",
+    )
+
     metadata = {
         "job_index": args.job_index,
         "model": "yolo26n",
@@ -124,6 +136,7 @@ def main():
         "parameter_count": parameter_count,
         "train_save_dir": str(save_dir),
         "test_save_dir": str(getattr(test_results, "save_dir", "")),
+        "test_metrics_path": str(metrics_path),
         "optimizer": hparams["optimizer"],
     }
 
