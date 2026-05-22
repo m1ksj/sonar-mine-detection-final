@@ -250,3 +250,26 @@ Do not commit:
 - generated result tables before the final run
 
 Commit only source code, configs, final small report tables and figures.
+## Streamlit demo UI
+
+The project also includes an optional Streamlit demo interface. The API remains the actual deployment interface; Streamlit is only a visual frontend for demonstration.
+
+Start the FastAPI backend in one terminal:
+
+```bash
+python scripts/run_api.py
+```
+
+Start the Streamlit demo in a second terminal:
+
+```bash
+python scripts/run_streamlit.py
+```
+
+Then open:
+
+```text
+http://localhost:8501
+```
+
+The demo can either select a local test image from data/processed/yolo26n/images/test or accept a manual image upload. If the corresponding YOLO label file is available, the demo overlays ground-truth boxes in green and model predictions in red.
