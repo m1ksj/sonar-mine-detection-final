@@ -47,6 +47,35 @@ def read_plan_row(path, job_index):
     raise ValueError(f"Unknown final job index: {job_index}")
 
 
+def read_darknet_data(path):
+    values = {}
+
+    for line in Path(path).read_text(encoding="utf-8").splitlines():
+        if "=" in line:
+            key, value = line.split("=", 1)
+            values[key.strip()] = value.strip()
+
+    return values
+
+
+def write_darknet_data(path, values):
+    lines = [
+        f"{key} = {value}"
+        for key, value in values.items()
+    ]
+    Path(path).write_text(
+        "\n".join(lines) + "\n",
+        encoding="utf-8",
+    )
+
+
+def prepare_test_data_file(base_data_file, test_list_file, output_file):
+    values = read_darknet_data(base_data_file)
+    values["valid"] = Path(test_list_file).resolve().as_posix()
+    write_darknet_data(output_file, values)
+    return output_file
+
+
 def run_name(row):
     return (
         f"final_{row['model']}_"
@@ -123,7 +152,13 @@ def main():
     )
 
     cfg_file = Path("configs/yolov4") / f"{row['augmentation']}.cfg"
-    data_file = Path("data/processed/darknet/obj.data")
+    base_data_file = Path("data/processed/darknet/obj.data")
+    test_list_file = Path("data/processed/darknet/test.txt")
+    data_file = prepare_test_data_file(
+        base_data_file=base_data_file,
+        test_list_file=test_list_file,
+        output_file=run_dir / "obj_test_iou.data",
+    )
     weights_file = metadata["best_weights"]
     sweep_dir = run_dir / "iou_sweep"
     sweep_dir.mkdir(parents=True, exist_ok=True)
