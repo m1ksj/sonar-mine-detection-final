@@ -4,10 +4,14 @@ import csv
 import json
 import re
 import subprocess
+import sys
 
 import yaml
 
-from sonar_mine_detection.evaluation.darknet_metrics import (
+REPO_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO_ROOT))
+
+from sonar_mine_detection.evaluation.darknet_metrics import (  # noqa: E402
     parse_darknet_map_text,
 )
 
