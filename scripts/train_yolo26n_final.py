@@ -75,7 +75,7 @@ def main():
         epochs=config["final_training"]["epochs"],
         batch_size=int(hparams["batch_size"]),
         learning_rate=float(hparams["learning_rate"]),
-        patience=int(hparams["patience"]),
+        patience=0,
         seed=int(row["seed"]),
         augmentation_key=row["augmentation"],
         augmentation_config="configs/augmentations.yaml",
