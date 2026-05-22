@@ -23,6 +23,7 @@ Final comparison:
 - YOLO26n no augmentation
 - seeds: 117, 221, 333
 - final reporting: held-out test metrics as mean +/- standard deviation over seeds
+- YOLO26n final training uses the selected CV hyperparameters but disables early stopping with patience=0
 
 Deployment selection:
 - select only among YOLO26n YOLOv4-style final runs
