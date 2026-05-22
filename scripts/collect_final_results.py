@@ -3,6 +3,10 @@ from pathlib import Path
 import csv
 import json
 
+from sonar_mine_detection.evaluation.darknet_metrics import (
+    parse_darknet_metrics_file,
+)
+
 
 VAL_METRICS = {
     "val_precision": "metrics/precision(B)",
@@ -11,12 +15,26 @@ VAL_METRICS = {
     "val_map50_95": "metrics/mAP50-95(B)",
 }
 
-TEST_METRICS = {
-    "test_precision": "metrics/precision(B)",
-    "test_recall": "metrics/recall(B)",
-    "test_map50": "metrics/mAP50(B)",
-    "test_map50_95": "metrics/mAP50-95(B)",
-}
+OUTPUT_COLUMNS = [
+    "job_index",
+    "model",
+    "augmentation",
+    "seed",
+    "run_name",
+    "runtime_seconds",
+    "best_weights",
+    "best_weights_mb",
+    "parameter_count",
+    "val_precision",
+    "val_recall",
+    "val_map50",
+    "val_map50_95",
+    "test_precision",
+    "test_recall",
+    "test_f1",
+    "test_map50",
+    "test_map50_95",
+]
 
 
 def read_csv(path):
@@ -32,7 +50,7 @@ def write_csv(path, rows):
     path.parent.mkdir(parents=True, exist_ok=True)
 
     with path.open("w", newline="", encoding="utf-8") as file:
-        writer = csv.DictWriter(file, fieldnames=rows[0].keys())
+        writer = csv.DictWriter(file, fieldnames=OUTPUT_COLUMNS)
         writer.writeheader()
         writer.writerows(rows)
 
@@ -57,6 +75,16 @@ def metric_values(row, mapping):
     }
 
 
+def f1_score(precision, recall):
+    precision = float(precision)
+    recall = float(recall)
+
+    if precision + recall == 0:
+        return 0.0
+
+    return 2 * precision * recall / (precision + recall)
+
+
 def best_validation_metrics(path):
     rows = [
         row for row in read_csv(path)
@@ -70,15 +98,35 @@ def best_validation_metrics(path):
     return metric_values(best, VAL_METRICS)
 
 
-def read_test_metrics_json(path):
+def read_yolo26n_test_metrics(path):
     values = read_json(path)
+
+    if "test_f1" not in values:
+        values["test_f1"] = f1_score(
+            values["test_precision"],
+            values["test_recall"],
+        )
 
     return {
         "test_precision": values["test_precision"],
         "test_recall": values["test_recall"],
+        "test_f1": values["test_f1"],
         "test_map50": values["test_map50"],
         "test_map50_95": values["test_map50_95"],
     }
+
+
+def read_yolov4_test_metrics(run_dir):
+    aggregate, _ = parse_darknet_metrics_file(
+        run_dir / "test_metrics.txt"
+    )
+    sweep_path = run_dir / "test_iou_sweep_summary.json"
+
+    if sweep_path.exists():
+        sweep = read_json(sweep_path)
+        aggregate["test_map50_95"] = sweep["test_map50_95"]
+
+    return aggregate
 
 
 def collect(plan_path, experiments_dir):
@@ -99,23 +147,16 @@ def collect(plan_path, experiments_dir):
             "runtime_seconds": metadata["runtime_seconds"],
             "best_weights": metadata["best_weights"],
             "best_weights_mb": metadata["best_weights_mb"],
-            "parameter_count": metadata["parameter_count"],
+            "parameter_count": metadata.get("parameter_count", ""),
         }
 
         if row["model"] == "yolo26n":
             output.update(best_validation_metrics(run_dir / "results.csv"))
             test_metrics_path = run_dir / "test_metrics.json"
-            output.update(read_test_metrics_json(test_metrics_path))
+            output.update(read_yolo26n_test_metrics(test_metrics_path))
         else:
             output.update({key: "" for key in VAL_METRICS})
-            output.update(
-                {
-                    "test_precision": "",
-                    "test_recall": "",
-                    "test_map50": metadata["test_map50"],
-                    "test_map50_95": "",
-                }
-            )
+            output.update(read_yolov4_test_metrics(run_dir))
 
         output_rows.append(output)
 

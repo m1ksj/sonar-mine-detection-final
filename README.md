@@ -13,7 +13,7 @@ YOLO26n tuning:
 - learning rates: 0.001, 0.005, 0.01
 - batch sizes: 8, 16
 - optimizers: SGD, AdamW
-- patience fixed at 50
+- patience fixed at 100
 - tuning metric: mean validation mAP50-95 across five folds
 
 Final comparison:
@@ -23,7 +23,7 @@ Final comparison:
 - YOLO26n no augmentation
 - seeds: 117, 221, 333
 - final reporting: held-out test metrics as mean +/- standard deviation over seeds
-- YOLO26n final training uses the selected CV hyperparameters but disables early stopping with patience=0
+- YOLO26n final training uses the selected CV hyperparameters with patience=100
 
 Deployment selection:
 - select only among YOLO26n YOLOv4-style final runs
@@ -173,6 +173,10 @@ Run final training:
 
 ```bash
 sbatch jobs/train_final_array.sbatch
+
+# After final training has finished, run the model-specific test evaluations:
+sbatch jobs/evaluate_yolo26n_final_test.sbatch
+sbatch jobs/evaluate_yolov4_iou_sweep.sbatch
 ```
 
 Monitor final training:
@@ -187,7 +191,9 @@ Collect final results, seed summaries and select the API model:
 
 ```bash
 pipenv run python scripts/collect_final_results.py
+pipenv run python scripts/collect_final_class_results.py
 pipenv run python scripts/summarize_final_results.py
+pipenv run python scripts/summarize_final_class_results.py
 pipenv run python scripts/select_deployment_model.py
 pipenv run python scripts/copy_selected_model.py
 ```
