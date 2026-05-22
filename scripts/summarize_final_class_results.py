@@ -8,17 +8,19 @@ import statistics
 GROUP_COLUMNS = [
     "model",
     "augmentation",
+    "class_id",
+    "class_name",
 ]
 
 METRIC_COLUMNS = [
-    "test_precision",
-    "test_recall",
-    "test_f1",
-    "test_map50",
-    "test_map50_95",
-    "runtime_seconds",
-    "best_weights_mb",
-    "parameter_count",
+    "ap50",
+    "tp",
+    "fp",
+    "fn",
+    "gt_count",
+    "class_precision",
+    "class_recall",
+    "class_f1",
 ]
 
 
@@ -99,17 +101,17 @@ def main():
     parser = ArgumentParser()
     parser.add_argument(
         "--input",
-        default="reports/tables/final_run_results.csv",
+        default="reports/tables/final_class_results.csv",
     )
     parser.add_argument(
         "--output",
-        default="reports/tables/final_seed_summary.csv",
+        default="reports/tables/final_class_summary.csv",
     )
     args = parser.parse_args()
 
     rows = summarize(read_csv(args.input))
     write_csv(args.output, rows)
-    print(f"Final seed summary rows written: {len(rows)}")
+    print(f"Final class summary rows written: {len(rows)}")
 
 
 if __name__ == "__main__":
