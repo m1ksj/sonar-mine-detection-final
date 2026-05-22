@@ -13,7 +13,7 @@ set -e
 module purge
 module load Python/3.11.5-GCCcore-13.2.0
 module load CUDA/12.1.1
-module load cuDNN/8.9.2.26-CUDA-12.1.1
+module load OpenCV/4.8.1-foss-2023a-CUDA-12.1.1-contrib
 
 export PATH="$HOME/.local/bin:$PATH"
 
