@@ -1,0 +1,6 @@
+learning_rate: 0.005
+batch_size: 16
+optimizer: SGD
+patience: 100
+mean_map50_95: 0.309222
+n_folds: 5
