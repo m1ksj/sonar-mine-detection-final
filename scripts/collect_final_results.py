@@ -70,13 +70,15 @@ def best_validation_metrics(path):
     return metric_values(best, VAL_METRICS)
 
 
-def last_test_metrics(path):
-    rows = read_csv(path)
+def read_test_metrics_json(path):
+    values = read_json(path)
 
-    if not rows:
-        raise ValueError(f"No test metrics found in {path}")
-
-    return metric_values(rows[-1], TEST_METRICS)
+    return {
+        "test_precision": values["test_precision"],
+        "test_recall": values["test_recall"],
+        "test_map50": values["test_map50"],
+        "test_map50_95": values["test_map50_95"],
+    }
 
 
 def collect(plan_path, experiments_dir):
@@ -101,9 +103,9 @@ def collect(plan_path, experiments_dir):
         }
 
         if row["model"] == "yolo26n":
-            test_path = experiments_dir / "final_test" / name / "results.csv"
             output.update(best_validation_metrics(run_dir / "results.csv"))
-            output.update(last_test_metrics(test_path))
+            test_metrics_path = run_dir / "test_metrics.json"
+            output.update(read_test_metrics_json(test_metrics_path))
         else:
             output.update({key: "" for key in VAL_METRICS})
             output.update(
