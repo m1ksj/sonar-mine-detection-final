@@ -1,4 +1,4 @@
-﻿import csv
+import csv
 from pathlib import Path
 
 CLASS_NAMES = {0: "MILCO", 1: "NOMBO"}

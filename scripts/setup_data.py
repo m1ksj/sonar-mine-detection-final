@@ -1,4 +1,4 @@
-﻿from argparse import ArgumentParser
+from argparse import ArgumentParser
 from pathlib import Path
 from shutil import copyfile
 from zipfile import ZipFile

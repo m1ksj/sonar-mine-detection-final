@@ -56,8 +56,9 @@ def get_model():
         raise HTTPException(
             status_code=500,
             detail=(
-                "Deployment model not found. Run scripts/setup_model.py "
-                "after the final model artifact is available."
+                "Deployment model not found. Place yolo26n_selected.pt "
+                "in models/final/ or run scripts/copy_selected_model.py "
+                "after final model selection."
             ),
         )
 
@@ -92,30 +93,31 @@ async def predict(file: UploadFile = File(...)):
         temp_path = Path(temp_file.name)
         temp_file.write(await file.read())
 
-    validate_image(temp_path)
+    try:
+        validate_image(temp_path)
 
-    detector = get_model()
-    results = detector.predict(str(temp_path), verbose=False)[0]
+        detector = get_model()
+        results = detector.predict(str(temp_path), verbose=False)[0]
 
-    detections = []
+        detections = []
 
-    for box in results.boxes:
-        class_id = int(box.cls.item())
-        detections.append(
-            Detection(
-                class_id=class_id,
-                class_name=CLASS_NAMES.get(class_id, "unknown"),
-                confidence=float(box.conf.item()),
-                box_xyxy=[
-                    float(value)
-                    for value in box.xyxy[0].tolist()
-                ],
+        for box in results.boxes:
+            class_id = int(box.cls.item())
+            detections.append(
+                Detection(
+                    class_id=class_id,
+                    class_name=CLASS_NAMES.get(class_id, "unknown"),
+                    confidence=float(box.conf.item()),
+                    box_xyxy=[
+                        float(value)
+                        for value in box.xyxy[0].tolist()
+                    ],
+                )
             )
+
+        return PredictionResponse(
+            image_name=file.filename or "uploaded_image",
+            detections=detections,
         )
-
-    temp_path.unlink(missing_ok=True)
-
-    return PredictionResponse(
-        image_name=file.filename or "uploaded_image",
-        detections=detections,
-    )
+    finally:
+        temp_path.unlink(missing_ok=True)

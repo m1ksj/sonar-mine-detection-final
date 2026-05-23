@@ -1,4 +1,4 @@
-﻿from pathlib import Path
+from pathlib import Path
 import io
 
 from PIL import Image, ImageDraw
