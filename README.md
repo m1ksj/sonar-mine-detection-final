@@ -236,6 +236,32 @@ scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/models/final/yolo
 
 Commit only the small CSV/YAML/JSON artifacts. Do not commit model weights.
 
+## Copy optional analysis sources for presentation figures
+
+These files are not committed. They are only needed if you want to regenerate presentation figures locally after the final Habrok runs.
+
+Run this from local Windows PowerShell:
+
+```powershell
+New-Item -ItemType Directory -Force experiments\analysis_sources\yolo26n_final_results_csv
+New-Item -ItemType Directory -Force experiments\analysis_sources\yolov4_slurm_logs
+
+scp 's5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/final/final_yolo26n_*/results.csv' experiments/analysis_sources/yolo26n_final_results_csv/
+
+scp 's5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/slurm/final_28990301_*.out' experiments/analysis_sources/yolov4_slurm_logs/
+scp 's5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/slurm/final_28990301_*.err' experiments/analysis_sources/yolov4_slurm_logs/
+
+scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/reports/tables/final_training_plan.csv experiments/analysis_sources/final_training_plan.csv
+```
+
+These analysis sources stay inside `experiments/`, which is ignored by Git. They should not be committed.
+
+Use these files only for local figure generation:
+
+- YOLO26n `results.csv` files provide true train/validation loss curves and validation mAP curves.
+- YOLOv4 Darknet logs provide training average loss and validation mAP50, but not a clean validation-loss curve.
+- Therefore, YOLOv4 overfitting should be shown as training average loss plus validation mAP50, not as train-vs-validation loss.
+
 ## API
 
 The deployed model is served through a local FastAPI endpoint. The API requires the selected YOLO26n weight file at:
@@ -302,3 +328,4 @@ http://localhost:8501
 ```
 
 The demo can either select a local test image from data/processed/yolo26n/images/test or accept a manual image upload. If the corresponding YOLO label file is available, the demo overlays ground-truth boxes in green and model predictions in red.
+
