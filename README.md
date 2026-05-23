@@ -246,10 +246,16 @@ Run this from local Windows PowerShell:
 New-Item -ItemType Directory -Force experiments\analysis_sources\yolo26n_final_results_csv
 New-Item -ItemType Directory -Force experiments\analysis_sources\yolov4_slurm_logs
 
-scp 's5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/final/final_yolo26n_*/results.csv' experiments/analysis_sources/yolo26n_final_results_csv/
+scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/final/final_yolo26n_yolo26n_yolov4_style_seed117/results.csv experiments/analysis_sources/yolo26n_final_results_csv/yolo26n_yolov4_style_seed117_results.csv
+scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/final/final_yolo26n_yolo26n_yolov4_style_seed221/results.csv experiments/analysis_sources/yolo26n_final_results_csv/yolo26n_yolov4_style_seed221_results.csv
+scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/final/final_yolo26n_yolo26n_yolov4_style_seed333/results.csv experiments/analysis_sources/yolo26n_final_results_csv/yolo26n_yolov4_style_seed333_results.csv
 
-scp 's5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/slurm/final_28990301_*.out' experiments/analysis_sources/yolov4_slurm_logs/
-scp 's5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/slurm/final_28990301_*.err' experiments/analysis_sources/yolov4_slurm_logs/
+scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/final/final_yolo26n_yolo26n_no_aug_seed117/results.csv experiments/analysis_sources/yolo26n_final_results_csv/yolo26n_no_aug_seed117_results.csv
+scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/final/final_yolo26n_yolo26n_no_aug_seed221/results.csv experiments/analysis_sources/yolo26n_final_results_csv/yolo26n_no_aug_seed221_results.csv
+scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/final/final_yolo26n_yolo26n_no_aug_seed333/results.csv experiments/analysis_sources/yolo26n_final_results_csv/yolo26n_no_aug_seed333_results.csv
+
+scp "s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/slurm/final_*.out" experiments/analysis_sources/yolov4_slurm_logs/
+scp "s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/slurm/final_*.err" experiments/analysis_sources/yolov4_slurm_logs/
 
 scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/reports/tables/final_training_plan.csv experiments/analysis_sources/final_training_plan.csv
 ```
