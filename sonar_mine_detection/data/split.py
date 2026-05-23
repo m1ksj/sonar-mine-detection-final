@@ -1,4 +1,4 @@
-﻿import csv
+import csv
 from pathlib import Path
 
 from sklearn.model_selection import StratifiedKFold, train_test_split

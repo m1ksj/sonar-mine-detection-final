@@ -2,8 +2,12 @@ from argparse import ArgumentParser
 from pathlib import Path
 import csv
 import json
+import sys
 
-from sonar_mine_detection.evaluation.darknet_metrics import (
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from sonar_mine_detection.evaluation.darknet_metrics import (  # noqa: E402
     parse_darknet_metrics_file,
 )
 

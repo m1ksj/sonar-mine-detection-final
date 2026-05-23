@@ -13,6 +13,12 @@ class_id = 1, name = NOMBO, ap = 41.52%       (TP = 10, FP = 12)
  mean average precision (mAP@0.50) = 0.503082, or 50.31 %
 """
 
+SAMPLE_WITHOUT_SUMMARY = """
+class_id = 0, name = MILCO, ap = 59.10%       (TP = 36, FP = 16)
+class_id = 1, name = NOMBO, ap = 41.52%       (TP = 10, FP = 12)
+ mean average precision (mAP@0.50) = 0.503082, or 50.31 %
+"""
+
 
 class TestDarknetMetrics(unittest.TestCase):
     def test_parse_aggregate_and_class_metrics(self):
@@ -35,6 +41,16 @@ class TestDarknetMetrics(unittest.TestCase):
         self.assertEqual(rows[0]["fn"], 36)
         self.assertEqual(rows[1]["fn"], 15)
         self.assertAlmostEqual(rows[0]["class_recall"], 0.5)
+
+    def test_parse_without_precision_summary(self):
+        aggregate, class_rows = parse_darknet_map_text(SAMPLE_WITHOUT_SUMMARY)
+
+        self.assertEqual(aggregate["test_precision"], "")
+        self.assertEqual(aggregate["test_recall"], "")
+        self.assertEqual(aggregate["test_f1"], "")
+        self.assertEqual(aggregate["test_map50"], 0.503082)
+        self.assertEqual(len(class_rows), 2)
+        self.assertEqual(class_rows[0]["class_name"], "MILCO")
 
 
 if __name__ == "__main__":

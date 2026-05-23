@@ -1,4 +1,4 @@
-# Sonar Mine Detection
+﻿# Sonar Mine Detection
 
 Reproducible side-scan sonar object detection project comparing YOLOv4 and YOLO26n for MILCO/NOMBO detection.
 
@@ -205,6 +205,9 @@ reports/tables/yolo26n_tuning_results.csv
 reports/tables/yolo26n_hparam_summary.csv
 reports/tables/final_run_results.csv
 reports/tables/final_seed_summary.csv
+reports/tables/final_class_results.csv
+reports/tables/final_class_summary.csv
+models/final/model_selection.json
 ```
 
 YOLO26n learning curves are stored in each run folder as results.csv.
@@ -219,24 +222,49 @@ scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/reports/tables/yo
 scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/reports/tables/yolo26n_hparam_summary.csv reports/tables/
 scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/reports/tables/final_run_results.csv reports/tables/
 scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/reports/tables/final_seed_summary.csv reports/tables/
+scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/reports/tables/final_class_results.csv reports/tables/
+scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/reports/tables/final_class_summary.csv reports/tables/
 scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/configs/yolo26n_best.yaml configs/
+scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/models/final/model_selection.json models/final/
 ```
 
-Do not commit model weights.
+The selected PyTorch weight file is intentionally not committed because *.pt files are ignored. To run the local API or Streamlit demo, copy it locally as well:
+
+```powershell
+scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/models/final/yolo26n_selected.pt models/final/
+```
+
+Commit only the small CSV/YAML/JSON artifacts. Do not commit model weights.
 
 ## API
 
-Start locally after models/final/yolo26n_selected.pt exists:
+The deployed model is served through a local FastAPI endpoint. The API requires the selected YOLO26n weight file at:
 
-```powershell
-py -m pipenv run python scripts/run_api.py
+```text
+models/final/yolo26n_selected.pt
 ```
 
-Open:
+This file is not tracked by Git because model weights are ignored. If it is missing, copy it from Habrok or place the selected model weight at that path.
+
+Start the API locally:
+
+```powershell
+python scripts/run_api.py
+```
+
+Open the automatically generated API documentation:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
+
+Example request from Windows PowerShell:
+
+```powershell
+curl.exe -X POST "http://127.0.0.1:8000/predict" -F "file=@data/processed/yolo26n/images/test/0002_2015.jpg"
+```
+
+The response is a JSON object containing the input image name and a list of detections with class ID, class name, confidence and bounding-box coordinates in pixel xyxy format.
 
 ## Git policy
 
@@ -250,6 +278,7 @@ Do not commit:
 - generated result tables before the final run
 
 Commit only source code, configs, final small report tables and figures.
+
 ## Streamlit demo UI
 
 The project also includes an optional Streamlit demo interface. The API remains the actual deployment interface; Streamlit is only a visual frontend for demonstration.
