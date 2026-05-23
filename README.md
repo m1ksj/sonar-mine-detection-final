@@ -1,4 +1,4 @@
-﻿# Sonar Mine Detection
+# Sonar Mine Detection
 
 Reproducible side-scan sonar object detection project comparing YOLOv4 and YOLO26n for MILCO/NOMBO detection.
 

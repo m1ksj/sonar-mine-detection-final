@@ -120,6 +120,18 @@ def read_yolo26n_test_metrics(path):
     }
 
 
+def project_relative(path):
+    path = Path(path)
+
+    if not path.is_absolute():
+        return path.as_posix()
+
+    try:
+        return path.relative_to(Path.cwd().resolve()).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
 def read_yolov4_test_metrics(run_dir):
     aggregate, _ = parse_darknet_metrics_file(
         run_dir / "test_metrics.txt"
@@ -149,7 +161,7 @@ def collect(plan_path, experiments_dir):
             "seed": row["seed"],
             "run_name": name,
             "runtime_seconds": metadata["runtime_seconds"],
-            "best_weights": metadata["best_weights"],
+            "best_weights": project_relative(metadata["best_weights"]),
             "best_weights_mb": metadata["best_weights_mb"],
             "parameter_count": metadata.get("parameter_count", ""),
         }
