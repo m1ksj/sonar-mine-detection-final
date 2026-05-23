@@ -41,16 +41,10 @@ py -m pipenv run pre-commit run --all-files
 
 ## Habrok access
 
-Connect from a local terminal:
+Connect from a local terminal. Replace `<your-s-number>` with your own Habrok/RUG student account:
 
 ```bash
-ssh <s-number>@login1.hb.hpc.rug.nl
-```
-
-For this project account:
-
-```bash
-ssh s5626595@login1.hb.hpc.rug.nl
+ssh <your-s-number>@login1.hb.hpc.rug.nl
 ```
 
 All following commands are executed on the Habrok login node.
@@ -215,49 +209,57 @@ YOLOv4 weights and logs are stored under each run-specific experiments/final/fin
 
 ## Copy result tables back to the local repo
 
-Run this from local Windows PowerShell, not from the SSH session:
+Run this from local Windows PowerShell, not from the SSH session. Replace `<your-s-number>` with the Habrok account that ran the experiments.
 
 ```powershell
-scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/reports/tables/yolo26n_tuning_results.csv reports/tables/
-scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/reports/tables/yolo26n_hparam_summary.csv reports/tables/
-scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/reports/tables/final_run_results.csv reports/tables/
-scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/reports/tables/final_seed_summary.csv reports/tables/
-scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/reports/tables/final_class_results.csv reports/tables/
-scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/reports/tables/final_class_summary.csv reports/tables/
-scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/configs/yolo26n_best.yaml configs/
-scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/models/final/model_selection.json models/final/
+$HabrokUser = "<your-s-number>"
+$Remote = "$HabrokUser@login1.hb.hpc.rug.nl"
+$RemoteProject = "~/sonar-mine-detection-final"
+
+scp "${Remote}:${RemoteProject}/reports/tables/yolo26n_tuning_results.csv" reports/tables/
+scp "${Remote}:${RemoteProject}/reports/tables/yolo26n_hparam_summary.csv" reports/tables/
+scp "${Remote}:${RemoteProject}/reports/tables/final_run_results.csv" reports/tables/
+scp "${Remote}:${RemoteProject}/reports/tables/final_seed_summary.csv" reports/tables/
+scp "${Remote}:${RemoteProject}/reports/tables/final_class_results.csv" reports/tables/
+scp "${Remote}:${RemoteProject}/reports/tables/final_class_summary.csv" reports/tables/
+scp "${Remote}:${RemoteProject}/configs/yolo26n_best.yaml" configs/
+scp "${Remote}:${RemoteProject}/models/final/model_selection.json" models/final/
 ```
 
-The selected PyTorch weight file is intentionally not committed because *.pt files are ignored. To run the local API or Streamlit demo, copy it locally as well:
+The selected PyTorch weight file is intentionally not committed yet because `*.pt` files are ignored. To run the local API or Streamlit demo before the final model artifact is distributed, copy it locally as well:
 
 ```powershell
-scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/models/final/yolo26n_selected.pt models/final/
+scp "${Remote}:${RemoteProject}/models/final/yolo26n_selected.pt" models/final/
 ```
 
-Commit only the small CSV/YAML/JSON artifacts. Do not commit model weights.
+Commit only the small CSV/YAML/JSON artifacts. Do not commit model weights unless the final submission explicitly includes the selected deployment artifact.
 
 ## Copy optional analysis sources for presentation figures
 
 These files are not committed. They are only needed if you want to regenerate presentation figures locally after the final Habrok runs.
 
-Run this from local Windows PowerShell:
+Run this from local Windows PowerShell. Replace `<your-s-number>` with the Habrok account that ran the experiments.
 
 ```powershell
+$HabrokUser = "<your-s-number>"
+$Remote = "$HabrokUser@login1.hb.hpc.rug.nl"
+$RemoteProject = "~/sonar-mine-detection-final"
+
 New-Item -ItemType Directory -Force experiments\analysis_sources\yolo26n_final_results_csv
 New-Item -ItemType Directory -Force experiments\analysis_sources\yolov4_slurm_logs
 
-scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/final/final_yolo26n_yolo26n_yolov4_style_seed117/results.csv experiments/analysis_sources/yolo26n_final_results_csv/yolo26n_yolov4_style_seed117_results.csv
-scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/final/final_yolo26n_yolo26n_yolov4_style_seed221/results.csv experiments/analysis_sources/yolo26n_final_results_csv/yolo26n_yolov4_style_seed221_results.csv
-scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/final/final_yolo26n_yolo26n_yolov4_style_seed333/results.csv experiments/analysis_sources/yolo26n_final_results_csv/yolo26n_yolov4_style_seed333_results.csv
+scp "${Remote}:${RemoteProject}/experiments/final/final_yolo26n_yolo26n_yolov4_style_seed117/results.csv" experiments/analysis_sources/yolo26n_final_results_csv/yolo26n_yolov4_style_seed117_results.csv
+scp "${Remote}:${RemoteProject}/experiments/final/final_yolo26n_yolo26n_yolov4_style_seed221/results.csv" experiments/analysis_sources/yolo26n_final_results_csv/yolo26n_yolov4_style_seed221_results.csv
+scp "${Remote}:${RemoteProject}/experiments/final/final_yolo26n_yolo26n_yolov4_style_seed333/results.csv" experiments/analysis_sources/yolo26n_final_results_csv/yolo26n_yolov4_style_seed333_results.csv
 
-scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/final/final_yolo26n_yolo26n_no_aug_seed117/results.csv experiments/analysis_sources/yolo26n_final_results_csv/yolo26n_no_aug_seed117_results.csv
-scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/final/final_yolo26n_yolo26n_no_aug_seed221/results.csv experiments/analysis_sources/yolo26n_final_results_csv/yolo26n_no_aug_seed221_results.csv
-scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/final/final_yolo26n_yolo26n_no_aug_seed333/results.csv experiments/analysis_sources/yolo26n_final_results_csv/yolo26n_no_aug_seed333_results.csv
+scp "${Remote}:${RemoteProject}/experiments/final/final_yolo26n_yolo26n_no_aug_seed117/results.csv" experiments/analysis_sources/yolo26n_final_results_csv/yolo26n_no_aug_seed117_results.csv
+scp "${Remote}:${RemoteProject}/experiments/final/final_yolo26n_yolo26n_no_aug_seed221/results.csv" experiments/analysis_sources/yolo26n_final_results_csv/yolo26n_no_aug_seed221_results.csv
+scp "${Remote}:${RemoteProject}/experiments/final/final_yolo26n_yolo26n_no_aug_seed333/results.csv" experiments/analysis_sources/yolo26n_final_results_csv/yolo26n_no_aug_seed333_results.csv
 
-scp "s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/slurm/final_*.out" experiments/analysis_sources/yolov4_slurm_logs/
-scp "s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/experiments/slurm/final_*.err" experiments/analysis_sources/yolov4_slurm_logs/
+scp "${Remote}:${RemoteProject}/experiments/slurm/final_*.out" experiments/analysis_sources/yolov4_slurm_logs/
+scp "${Remote}:${RemoteProject}/experiments/slurm/final_*.err" experiments/analysis_sources/yolov4_slurm_logs/
 
-scp s5626595@login1.hb.hpc.rug.nl:~/sonar-mine-detection-final/reports/tables/final_training_plan.csv experiments/analysis_sources/final_training_plan.csv
+scp "${Remote}:${RemoteProject}/reports/tables/final_training_plan.csv" experiments/analysis_sources/final_training_plan.csv
 ```
 
 These analysis sources stay inside `experiments/`, which is ignored by Git. They should not be committed.
