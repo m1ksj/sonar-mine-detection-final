@@ -287,7 +287,7 @@ ssh $Remote "cd $RemoteProject && sha256sum models/final/yolo26n_selected.pt"
 
 ## Optional analysis sources for presentation figures
 
-These files are not committed. They are only needed if you want to regenerate presentation figures locally after the final Habrok runs.
+These files are not committed. They are only needed to regenerate presentation figures locally after the final Habrok runs.
 
 ```powershell
 $HabrokUser = "<your-s-number>"
@@ -308,7 +308,7 @@ scp "${Remote}:${RemoteProject}/experiments/slurm/final_*.err" experiments/analy
 scp "${Remote}:${RemoteProject}/reports/tables/final_training_plan.csv" experiments/analysis_sources/final_training_plan.csv
 ```
 
-Use these files only for local figure generation. YOLO26n `results.csv` files provide true train/validation loss curves and validation mAP curves. YOLOv4 Darknet logs provide training average loss and validation mAP50, but not a clean validation-loss curve.
+YOLO26n `results.csv` files provide true train/validation loss curves and validation mAP curves. YOLOv4 Darknet logs provide training average loss and validation mAP50, but not a clean validation-loss curve.
 
 ## Git policy
 
