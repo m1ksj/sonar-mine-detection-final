@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 import io
 
 from PIL import Image, ImageDraw
@@ -10,6 +10,10 @@ CLASS_NAMES = {
     0: "MILCO",
     1: "NOMBO",
 }
+
+API_URL = "http://127.0.0.1:8000/predict"
+IMAGE_DIR = Path("data/processed/yolo26n/images/test")
+LABEL_DIR = Path("data/processed/yolo26n/labels/test")
 
 PREDICTION_COLOR = "red"
 GROUND_TRUTH_COLOR = "lime"
@@ -69,18 +73,17 @@ def prediction_boxes(detections):
     boxes = []
 
     for detection in detections:
-        x1, y1, x2, y2 = detection["box_xyxy"]
+        box = detection["box"]
         confidence = float(detection["confidence"])
 
         boxes.append(
             {
-                "class_id": detection["class_id"],
                 "class_name": detection["class_name"],
                 "confidence": confidence,
-                "x1": x1,
-                "y1": y1,
-                "x2": x2,
-                "y2": y2,
+                "x1": float(box["x1"]),
+                "y1": float(box["y1"]),
+                "x2": float(box["x2"]),
+                "y2": float(box["y2"]),
             }
         )
 
@@ -110,13 +113,13 @@ def render_overlay(image, predictions, ground_truth):
     return output
 
 
-def call_api(api_url, image_name, image):
+def call_api(image_name, image):
     buffer = io.BytesIO()
     image.save(buffer, format="JPEG")
     buffer.seek(0)
 
     response = requests.post(
-        api_url,
+        API_URL,
         files={"file": (image_name, buffer, "image/jpeg")},
         timeout=60,
     )
@@ -126,12 +129,10 @@ def call_api(api_url, image_name, image):
 
 
 def local_test_images():
-    image_dir = Path("data/processed/yolo26n/images/test")
-
-    if not image_dir.exists():
+    if not IMAGE_DIR.exists():
         return []
 
-    return sorted(image_dir.glob("*.jpg"))
+    return sorted(IMAGE_DIR.glob("*.jpg"))
 
 
 def main():
@@ -142,80 +143,35 @@ def main():
 
     st.title("Side-Scan Sonar Object Detection Demo")
     st.write(
-        "This demo calls the FastAPI `/predict` endpoint and visualizes "
-        "predicted MILCO/NOMBO boxes together with ground-truth annotations "
-        "when labels are available."
+        "This demo calls the local FastAPI `/predict` endpoint and "
+        "visualizes predicted MILCO/NOMBO boxes together with "
+        "ground-truth annotations."
     )
 
-    api_url = st.sidebar.text_input(
-        "FastAPI prediction endpoint",
-        "http://127.0.0.1:8000/predict",
+    image_paths = local_test_images()
+
+    if not image_paths:
+        st.warning(
+            "No local test images found in "
+            "`data/processed/yolo26n/images/test`."
+        )
+        st.stop()
+
+    selected = st.sidebar.selectbox(
+        "Test image",
+        image_paths,
+        format_func=lambda path: path.name,
     )
 
-    mode = st.sidebar.radio(
-        "Input mode",
-        [
-            "Select local test image",
-            "Upload image manually",
-        ],
+    image = Image.open(selected).convert("RGB")
+    image_name = selected.name
+
+    label_path = LABEL_DIR / f"{selected.stem}.txt"
+    ground_truth = read_label_file(
+        label_path,
+        image.width,
+        image.height,
     )
-
-    image = None
-    image_name = None
-    ground_truth = []
-
-    if mode == "Select local test image":
-        image_paths = local_test_images()
-
-        if not image_paths:
-            st.warning(
-                "No local test images found in "
-                "`data/processed/yolo26n/images/test`."
-            )
-            st.stop()
-
-        selected = st.sidebar.selectbox(
-            "Test image",
-            image_paths,
-            format_func=lambda path: path.name,
-        )
-
-        image = Image.open(selected).convert("RGB")
-        image_name = selected.name
-
-        label_path = (
-            Path("data/processed/yolo26n/labels/test")
-            / f"{selected.stem}.txt"
-        )
-        ground_truth = read_label_file(
-            label_path,
-            image.width,
-            image.height,
-        )
-
-    else:
-        uploaded_image = st.file_uploader(
-            "Upload sonar image",
-            type=["jpg", "jpeg", "png"],
-        )
-        uploaded_label = st.file_uploader(
-            "Optional: upload YOLO label file",
-            type=["txt"],
-        )
-
-        if uploaded_image is None:
-            st.stop()
-
-        image = Image.open(uploaded_image).convert("RGB")
-        image_name = uploaded_image.name
-
-        if uploaded_label is not None:
-            label_text = uploaded_label.read().decode("utf-8")
-            ground_truth = read_yolo_labels(
-                label_text,
-                image.width,
-                image.height,
-            )
 
     col_original, col_result = st.columns(2)
 
@@ -224,7 +180,7 @@ def main():
         st.image(image, use_container_width=True)
 
     if st.button("Predict", type="primary"):
-        result = call_api(api_url, image_name, image)
+        result = call_api(image_name, image)
         predictions = prediction_boxes(result["detections"])
         overlay = render_overlay(image, predictions, ground_truth)
 
@@ -234,13 +190,14 @@ def main():
             st.caption("Red = prediction, green = ground truth")
 
         st.subheader("Predictions")
-        st.dataframe(predictions, use_container_width=True)
+        st.dataframe(predictions, use_container_width=True, hide_index=True)
 
         st.subheader("Ground truth")
-        st.dataframe(ground_truth, use_container_width=True)
-
-        st.subheader("Raw API response")
-        st.json(result)
+        st.dataframe(ground_truth, use_container_width=True, hide_index=True)
+    else:
+        with col_result:
+            st.subheader("Prediction vs. ground truth")
+            st.info("Click Predict to run the local FastAPI model.")
 
 
 if __name__ == "__main__":

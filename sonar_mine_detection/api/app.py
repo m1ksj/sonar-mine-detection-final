@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
@@ -19,11 +19,17 @@ CLASS_NAMES = {
 MODEL_PATH = Path("models/final/yolo26n_selected.pt")
 
 
+class BoxXYXY(BaseModel):
+    x1: float
+    y1: float
+    x2: float
+    y2: float
+
+
 class Detection(BaseModel):
-    class_id: int
     class_name: str
     confidence: float
-    box_xyxy: list[float]
+    box: BoxXYXY
 
 
 class PredictionResponse(BaseModel):
@@ -34,10 +40,13 @@ class PredictionResponse(BaseModel):
 app = FastAPI(
     title="Sonar Mine Detection API",
     description=(
-        "Object detection API for MILCO and NOMBO targets "
-        "in side-scan sonar images."
+        "Upload one JPEG or PNG side-scan sonar image. The API returns "
+        "MILCO/NOMBO detections as class names, confidence scores and "
+        "pixel-space xyxy bounding boxes. Image validation and model "
+        "preprocessing are handled server-side."
     ),
-    version="0.1.0",
+    version="1.0.0",
+    redoc_url=None,
 )
 
 model = None
@@ -56,9 +65,8 @@ def get_model():
         raise HTTPException(
             status_code=500,
             detail=(
-                "Deployment model not found. Place yolo26n_selected.pt "
-                "in models/final/ or run scripts/copy_selected_model.py "
-                "after final model selection."
+                "Deployment model missing at "
+                "models/final/yolo26n_selected.pt."
             ),
         )
 
@@ -79,7 +87,17 @@ def validate_image(file_path):
         ) from error
 
 
-@app.post("/predict", response_model=PredictionResponse)
+@app.post(
+    "/predict",
+    response_model=PredictionResponse,
+    summary="Detect MILCO and NOMBO objects",
+    description=(
+        "Request: multipart/form-data with one field named `file` containing "
+        "a JPEG or PNG image. Response: JSON with the image name and a list "
+        "of detections. Each detection contains a class name, confidence and "
+        "pixel-space bounding box coordinates `x1`, `y1`, `x2`, `y2`."
+    ),
+)
 async def predict(file: UploadFile = File(...)):
     if file.content_type not in {"image/jpeg", "image/png"}:
         raise HTTPException(
@@ -87,7 +105,7 @@ async def predict(file: UploadFile = File(...)):
             detail="Only JPEG and PNG images are supported.",
         )
 
-    suffix = Path(file.filename or "image.jpg").suffix
+    suffix = Path(file.filename or "image.jpg").suffix or ".jpg"
 
     with NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
         temp_path = Path(temp_file.name)
@@ -97,21 +115,17 @@ async def predict(file: UploadFile = File(...)):
         validate_image(temp_path)
 
         detector = get_model()
-        results = detector.predict(str(temp_path), verbose=False)[0]
+        result = detector.predict(str(temp_path), verbose=False)[0]
 
         detections = []
-
-        for box in results.boxes:
+        for box in result.boxes:
             class_id = int(box.cls.item())
+            x1, y1, x2, y2 = [float(value) for value in box.xyxy[0].tolist()]
             detections.append(
                 Detection(
-                    class_id=class_id,
                     class_name=CLASS_NAMES.get(class_id, "unknown"),
                     confidence=float(box.conf.item()),
-                    box_xyxy=[
-                        float(value)
-                        for value in box.xyxy[0].tolist()
-                    ],
+                    box=BoxXYXY(x1=x1, y1=y1, x2=x2, y2=y2),
                 )
             )
 
