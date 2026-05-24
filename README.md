@@ -11,25 +11,26 @@ Install the environment:
 ```powershell
 py -m pip install --user pipenv
 py -m pipenv install --dev
+py -m pipenv shell
 ```
 
 Prepare the public Figshare dataset locally:
 
 ```powershell
-py -m pipenv run python scripts/setup_data.py --config configs/project.yaml
+python scripts/setup_data.py --config configs/project.yaml
 ```
 
 Run tests and checks:
 
 ```powershell
-py -m pipenv run python -m unittest discover tests
-py -m pipenv run pre-commit run --all-files
+python -m unittest discover tests
+run pre-commit run --all-files
 ```
 
 Start the FastAPI deployment endpoint:
 
 ```powershell
-py -m pipenv run python scripts/run_api.py
+python scripts/run_api.py
 ```
 
 The selected model must exist at:
@@ -56,7 +57,7 @@ http://127.0.0.1:8000/docs
 Optional Streamlit demo, with the FastAPI backend already running in another terminal:
 
 ```powershell
-py -m pipenv run python scripts/run_streamlit.py
+python scripts/run_streamlit.py
 ```
 
 Then open:
@@ -200,8 +201,6 @@ Check Darknet on a GPU node:
 ```bash
 sbatch jobs/test_darknet.sbatch
 squeue --me
-tail -80 $(ls -t experiments/slurm/darknet_test_*.out | head -1)
-tail -80 $(ls -t experiments/slurm/darknet_test_*.err | head -1)
 ```
 
 Run YOLO26n tuning:
@@ -214,8 +213,6 @@ Monitor tuning:
 
 ```bash
 squeue --me
-tail -80 $(ls -t experiments/slurm/yolo26n_tune_*.out | head -1)
-tail -80 $(ls -t experiments/slurm/yolo26n_tune_*.err | head -1)
 ```
 
 Collect tuning results:
@@ -242,8 +239,6 @@ Monitor final jobs:
 
 ```bash
 squeue --me
-tail -80 $(ls -t experiments/slurm/final_*.out | head -1)
-tail -80 $(ls -t experiments/slurm/final_*.err | head -1)
 ```
 
 Collect final results, seed summaries and the selected API model:
