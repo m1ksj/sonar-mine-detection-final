@@ -2,6 +2,14 @@
 
 Reproducible side-scan sonar object detection project comparing YOLOv4 and YOLO26n for MILCO/NOMBO detection.
 
+## First-time setup
+
+Clone the repository and enter the project folder:
+
+```powershell
+git clone -b dev https://github.com/m1ksj/sonar-mine-detection-final.git
+cd sonar-mine-detection-final
+
 ## Quick local use
 
 This repository contains the source code, configs, final result tables and the selected deployment model. It does not contain the dataset or generated experiment folders.
@@ -14,6 +22,8 @@ py -m pipenv install --dev
 py -m pipenv shell
 ```
 
+Inside the Pipenv shell, prepare the dataset and validate the repository:
+
 Prepare the public Figshare dataset locally:
 
 ```powershell
@@ -24,7 +34,7 @@ Run tests and checks:
 
 ```powershell
 python -m unittest discover tests
-run pre-commit run --all-files
+pre-commit run --all-files
 ```
 
 Start the FastAPI deployment endpoint:
@@ -67,6 +77,45 @@ http://localhost:8501
 ```
 
 The Streamlit demo is only a visual frontend. The actual deployment interface is the FastAPI endpoint.
+
+
+## Workflow in this repository
+
+All changes should go through a feature branch and Pull Request. Direct pushes to `dev` and `main` should be avoided.
+
+Start from the latest `dev` branch:
+
+```powershell
+git checkout dev
+git pull --ff-only origin dev
+```
+
+Create a feature branch:
+
+```powershell
+git checkout -b docs/example
+```
+
+
+Before committing, run the tests and pre-commit checks:
+
+```powershell
+python -m unittest discover tests
+pre-commit run --all-files
+```
+
+Commit and push the branch:
+
+```powershell
+git status
+git add <changed-files>
+git commit -m "Example Message"
+git push -u origin docs/example
+```
+Then open a Pull Request on GitHub with:
+base: dev
+compare: docs/readme-update
+
 
 ## Final project design
 
