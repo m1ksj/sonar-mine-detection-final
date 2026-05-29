@@ -4,42 +4,72 @@ Reproducible side-scan sonar object detection project comparing YOLOv4 and YOLO2
 
 ## First-time setup
 
+This repository contains the source code, configs, final result tables and the selected deployment model. It does not contain the dataset or generated experiment folders.
+
+The project was developed and tested with Python 3.11. Other recent Python versions may also work, but the setup should always be validated with the tests below.
+
+### Windows PowerShell
+
 Clone the repository and enter the project folder:
 
 ```powershell
 git clone -b dev https://github.com/m1ksj/sonar-mine-detection-final.git
 cd sonar-mine-detection-final
+```
 
-## Quick local use
-
-This repository contains the source code, configs, final result tables and the selected deployment model. It does not contain the dataset or generated experiment folders.
-
-Install the environment:
+Install Pipenv and create the project environment:
 
 ```powershell
 py -m pip install --user pipenv
 py -m pipenv install --dev
 py -m pipenv shell
+python --version
 ```
 
-Inside the Pipenv shell, prepare the dataset and validate the repository:
+If dependencies seem missing although they are listed in the Pipfile, close the terminal and open a fresh one before running the setup commands again
 
-Prepare the public Figshare dataset locally:
+### macOS / Linux terminal
 
-```powershell
+Clone the repository and enter the project folder:
+
+```bash
+git clone -b dev https://github.com/m1ksj/sonar-mine-detection-final.git
+cd sonar-mine-detection-final
+```
+
+Install Pipenv and create the project environment:
+
+```bash
+python3 -m pip install --user pipenv
+python3 -m pipenv install --dev
+python3 -m pipenv shell
+python --version
+```
+
+If Pipenv was installed but is not found, add the local user binary folder to your PATH and rerun the Pipenv command:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+## Quick local use
+
+Inside the Pipenv shell, prepare the public Figshare dataset locally:
+
+```bash
 python scripts/setup_data.py --config configs/project.yaml
 ```
 
 Run tests and checks:
 
-```powershell
+```bash
 python -m unittest discover tests
 pre-commit run --all-files
 ```
 
 Start the FastAPI deployment endpoint:
 
-```powershell
+```bash
 python scripts/run_api.py
 ```
 
@@ -49,14 +79,21 @@ The selected model must exist at:
 models/final/yolo26n_selected.pt
 ```
 
-Minimal terminal request:
+The `/predict` endpoint accepts one JPEG or PNG image as `multipart/form-data` with field name `file`. It returns JSON with the image name and a list of MILCO/NOMBO detections containing class name, confidence and pixel-space `x1`, `y1`, `x2`, `y2` bounding boxes.
+
+Minimal terminal request on Windows PowerShell:
 
 ```powershell
 $img = Get-ChildItem data/processed/yolo26n/images/test -Filter *.jpg | Select-Object -First 1
 curl.exe -X POST "http://127.0.0.1:8000/predict" -F "file=@$($img.FullName)"
 ```
 
-The `/predict` endpoint accepts one JPEG or PNG image as `multipart/form-data` with field name `file`. It returns JSON with the image name and a list of MILCO/NOMBO detections containing class name, confidence and pixel-space `x1`, `y1`, `x2`, `y2` bounding boxes.
+Minimal terminal request on macOS / Linux:
+
+```bash
+img=$(find data/processed/yolo26n/images/test -name "*.jpg" | head -n 1)
+curl -X POST "http://127.0.0.1:8000/predict" -F "file=@${img}"
+```
 
 Open the automatically generated FastAPI documentation only when needed:
 
@@ -66,7 +103,7 @@ http://127.0.0.1:8000/docs
 
 Optional Streamlit demo, with the FastAPI backend already running in another terminal:
 
-```powershell
+```bash
 python scripts/run_streamlit.py
 ```
 
@@ -78,44 +115,47 @@ http://localhost:8501
 
 The Streamlit demo is only a visual frontend. The actual deployment interface is the FastAPI endpoint.
 
-
 ## Workflow in this repository
 
 All changes should go through a feature branch and Pull Request. Direct pushes to `dev` and `main` should be avoided.
 
 Start from the latest `dev` branch:
 
-```powershell
+```bash
 git checkout dev
 git pull --ff-only origin dev
 ```
 
 Create a feature branch:
 
-```powershell
+```bash
 git checkout -b docs/example
 ```
 
-
 Before committing, run the tests and pre-commit checks:
 
-```powershell
+```bash
 python -m unittest discover tests
 pre-commit run --all-files
 ```
 
 Commit and push the branch:
 
-```powershell
+```bash
 git status
 git add <changed-files>
-git commit -m "Example Message"
+git commit -m "Example message"
 git push -u origin docs/example
 ```
-Then open a Pull Request on GitHub with:
-base: dev
-compare: docs/readme-update
 
+Then open a Pull Request on GitHub with:
+
+```text
+base: dev
+compare: your feature branch
+```
+
+Do not commit raw data, training runs, experiment folders, intermediate checkpoints or temporary analysis files. The selected deployment artifact `models/final/yolo26n_selected.pt` is intentionally included.
 
 ## Final project design
 
@@ -180,7 +220,7 @@ rm -rf /scratch/$USER/sonar-mine-detection-final
 git clone https://github.com/m1ksj/sonar-mine-detection-final.git sonar-mine-detection-final
 cd sonar-mine-detection-final
 git checkout dev
-git pull origin dev
+git pull --ff-only origin dev
 ```
 
 Create scratch-backed runtime folders:
@@ -209,8 +249,8 @@ pipenv install --dev
 Install CUDA 12.1 PyTorch wheels:
 
 ```bash
-pipenv run pip install --no-cache-dir --force-reinstall `
-  torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 `
+pipenv run pip install --no-cache-dir --force-reinstall \
+  torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 \
   --index-url https://download.pytorch.org/whl/cu121
 ```
 
@@ -358,23 +398,3 @@ scp "${Remote}:${RemoteProject}/reports/tables/final_training_plan.csv" experime
 ```
 
 YOLO26n `results.csv` files provide true train/validation loss curves and validation mAP curves. YOLOv4 Darknet logs provide training average loss and validation mAP50, but not a clean validation-loss curve.
-
-## Git policy
-
-Do not commit:
-- data/
-- experiments/
-- external/
-- runs/
-- SLURM logs
-- intermediate model weights
-- generated result tables before the final run
-
-Commit:
-- source code
-- configs
-- final small result tables
-- final figures
-- `models/final/model_selection.json`
-- `models/final/yolo26n_selected.pt` as the selected deployment artifact
-
