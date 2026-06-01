@@ -1,5 +1,6 @@
-﻿from pathlib import Path
-import io
+﻿import io
+import os
+from pathlib import Path
 
 from PIL import Image, ImageDraw
 import requests
@@ -11,7 +12,7 @@ CLASS_NAMES = {
     1: "NOMBO",
 }
 
-API_URL = "http://127.0.0.1:8000/predict"
+API_URL = os.getenv("SONAR_API_URL", "http://127.0.0.1:8000/predict")
 IMAGE_DIR = Path("data/processed/yolo26n/images/test")
 LABEL_DIR = Path("data/processed/yolo26n/labels/test")
 

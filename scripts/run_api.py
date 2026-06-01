@@ -1,3 +1,4 @@
+﻿import os
 from pathlib import Path
 import sys
 
@@ -10,8 +11,8 @@ def main():
 
     uvicorn.run(
         "sonar_mine_detection.api.app:app",
-        host="127.0.0.1",
-        port=8000,
+        host=os.getenv("SONAR_API_HOST", "127.0.0.1"),
+        port=int(os.getenv("SONAR_API_PORT", "8000")),
     )
 
 
