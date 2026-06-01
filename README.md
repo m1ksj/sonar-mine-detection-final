@@ -6,11 +6,16 @@ Reproducible side-scan sonar object detection project comparing YOLOv4 and YOLO2
 
 This repository contains the source code, configs, final result tables and the selected deployment model. It does not contain the dataset or generated experiment folders.
 
-The project was developed and tested with Python 3.11. Other recent Python versions may also work, but the setup should always be validated with the tests below.
+The setup is Docker-based. This avoids local Python/Pipenv version issues and should work the same on Windows, macOS and Linux, as long as Docker is installed.
 
-## Recommended Docker setup
+### Requirements
 
-This is the recommended local setup for running the deployment API and Streamlit demo. It avoids local Python/Pipenv version issues and should work the same on Windows, macOS and Linux, as long as Docker is installed.
+- Git
+- Docker with Docker Compose
+
+### Setup and run
+
+Clone the repository, build the Docker image, prepare the dataset, run the tests and start the API plus Streamlit demo:
 
 ```bash
 git clone -b dev https://github.com/m1ksj/sonar-mine-detection-final.git
@@ -19,85 +24,28 @@ cd sonar-mine-detection-final
 docker compose build
 docker compose run --rm api python scripts/setup_data.py --config configs/project.yaml
 docker compose run --rm api python -m unittest discover tests
+docker compose run --rm api pre-commit run --all-files
 docker compose up
 ```
-After docker compose up, open:
 
+After `docker compose up`, open:
+
+```text
 http://127.0.0.1:8000/docs
 http://127.0.0.1:8501
-
-
-The FastAPI endpoint is the actual deployment interface. The Streamlit app is only a visual frontend
-
-
-# lokal
-
-### Windows PowerShell
-
-Clone the repository and enter the project folder:
-
-```powershell
-git clone -b dev https://github.com/m1ksj/sonar-mine-detection-final.git
-cd sonar-mine-detection-final
 ```
 
-Install Pipenv and create the project environment:
+The FastAPI endpoint is the actual deployment interface. The Streamlit app is only a visual frontend for the same model.
 
-```powershell
-py -m pip install --user pipenv
-py -m pipenv install --dev
-py -m pipenv shell
-python --version
-```
-
-If dependencies seem missing although they are listed in the Pipfile, close the terminal and open a fresh one before running the setup commands again
-
-### macOS / Linux terminal
-
-Clone the repository and enter the project folder:
+To stop the services, press `Ctrl + C` and then run:
 
 ```bash
-git clone -b dev https://github.com/m1ksj/sonar-mine-detection-final.git
-cd sonar-mine-detection-final
+docker compose down
 ```
 
-Install Pipenv and create the project environment:
+### Prediction endpoint
 
-```bash
-python3 -m pip install --user pipenv
-python3 -m pipenv install --dev
-python3 -m pipenv shell
-python --version
-```
-
-If Pipenv was installed but is not found, add the local user binary folder to your PATH and rerun the Pipenv command:
-
-```bash
-export PATH="$HOME/.local/bin:$PATH"
-```
-
-## Quick local use
-
-Inside the Pipenv shell, prepare the public Figshare dataset locally:
-
-```bash
-python scripts/setup_data.py --config configs/project.yaml
-```
-
-Run tests and checks:
-
-```bash
-python -m unittest discover tests
-pre-commit run --all-files
-```
-
-Start the FastAPI deployment endpoint:
-
-```bash
-python scripts/run_api.py
-```
-
-The selected model must exist at:
+The selected model is included in the repository and must be available at:
 
 ```text
 models/final/yolo26n_selected.pt
@@ -105,124 +53,25 @@ models/final/yolo26n_selected.pt
 
 The `/predict` endpoint accepts one JPEG or PNG image as `multipart/form-data` with field name `file`. It returns JSON with the image name and a list of MILCO/NOMBO detections containing class name, confidence and pixel-space `x1`, `y1`, `x2`, `y2` bounding boxes.
 
-Minimal terminal request on Windows PowerShell:
+Minimal request on Windows PowerShell:
 
 ```powershell
 $img = Get-ChildItem data/processed/yolo26n/images/test -Filter *.jpg | Select-Object -First 1
 curl.exe -X POST "http://127.0.0.1:8000/predict" -F "file=@$($img.FullName)"
 ```
 
-Minimal terminal request on macOS / Linux:
+Minimal request on macOS / Linux:
 
 ```bash
 img=$(find data/processed/yolo26n/images/test -name "*.jpg" | head -n 1)
 curl -X POST "http://127.0.0.1:8000/predict" -F "file=@${img}"
 ```
 
-Open the automatically generated FastAPI documentation only when needed:
+### Scope of the Docker setup
 
-```text
-http://127.0.0.1:8000/docs
-```
+The Docker setup is intended for local reproducibility of the dataset setup, tests, FastAPI deployment endpoint and Streamlit demo.
 
-Optional Streamlit demo, with the FastAPI backend already running in another terminal:
-
-```bash
-python scripts/run_streamlit.py
-```
-
-Then open:
-
-```text
-http://localhost:8501
-```
-
-The Streamlit demo is only a visual frontend. The actual deployment interface is the FastAPI endpoint.
-
-## Workflow in this repository
-
-All changes should go through a feature branch and Pull Request. Direct pushes to `dev` and `main` should be avoided.
-
-Start from the latest `dev` branch:
-
-```bash
-git checkout dev
-git pull --ff-only origin dev
-```
-
-Create a feature branch:
-
-```bash
-git checkout -b docs/example
-```
-
-Before committing, run the tests and pre-commit checks:
-
-```bash
-python -m unittest discover tests
-pre-commit run --all-files
-```
-
-Commit and push the branch:
-
-```bash
-git status
-git add <changed-files>
-git commit -m "Example message"
-git push -u origin docs/example
-```
-
-Then open a Pull Request on GitHub with:
-
-```text
-base: dev
-compare: your feature branch
-```
-
-Do not commit raw data, training runs, experiment folders, intermediate checkpoints or temporary analysis files. The selected deployment artifact `models/final/yolo26n_selected.pt` is intentionally included.
-
-## Final project design
-
-Data:
-- Public Figshare side-scan sonar dataset, year archives 2010, 2015, 2017, 2018 and 2021.
-- Fixed train/validation/test split with seed 117.
-- Split stratified by image category: `empty`, `milco_only`, `nombo_only`, `mixed`.
-- Five cross-validation folds created only from the training split.
-
-YOLO26n tuning:
-- learning rates: 0.001, 0.005, 0.01
-- batch sizes: 8, 16
-- optimizers: SGD, AdamW
-- patience fixed at 100
-- tuning metric: mean validation mAP50-95 across five folds
-
-Final comparison:
-- YOLOv4 default augmentation
-- YOLOv4 no augmentation
-- YOLO26n YOLOv4-style augmentation
-- YOLO26n no augmentation
-- seeds: 117, 221, 333
-- final reporting: held-out test metrics as mean +/- standard deviation over seeds
-- YOLO26n final training uses the selected CV hyperparameters with patience=100
-
-Deployment selection:
-- select only among YOLO26n YOLOv4-style final runs
-- select by validation mAP50-95, not test mAP50-95
-- keep the test set only for final reporting
-
-Main final artifacts:
-
-```text
-configs/yolo26n_best.yaml
-models/final/model_selection.json
-models/final/yolo26n_selected.pt
-reports/tables/yolo26n_tuning_results.csv
-reports/tables/yolo26n_hparam_summary.csv
-reports/tables/final_run_results.csv
-reports/tables/final_seed_summary.csv
-reports/tables/final_class_results.csv
-reports/tables/final_class_summary.csv
-```
+The Habrok workflow is separate and is only needed to reproduce the GPU training experiments and final training runs.
 
 ## Full Habrok reproducibility run
 
@@ -368,6 +217,7 @@ pipenv run python scripts/copy_selected_model.py
 YOLO26n learning curves are stored in each run folder as `results.csv`. YOLOv4 weights and logs are stored under the corresponding `experiments/final/final_yolov4_...` folders.
 
 ## Copy Habrok artifacts back to the local repo
+### Windows PowerShell
 
 Run this from local Windows PowerShell, not from the SSH session. Replace `<your-s-number>` with the Habrok account that ran the experiments.
 
@@ -398,6 +248,37 @@ Get-FileHash models/final/yolo26n_selected.pt -Algorithm SHA256
 ssh $Remote "cd $RemoteProject && sha256sum models/final/yolo26n_selected.pt"
 ```
 
+### macOS / Linux terminal
+
+Run this from your local machine, not from the SSH session. Replace `<your-s-number>` with the Habrok account that ran the experiments.
+
+```bash
+HABROK_USER="<your-s-number>"
+REMOTE="${HABROK_USER}@login1.hb.hpc.rug.nl"
+REMOTE_PROJECT="~/sonar-mine-detection-final"
+
+mkdir -p reports/tables
+mkdir -p configs
+mkdir -p models/final
+
+scp "${REMOTE}:${REMOTE_PROJECT}/reports/tables/yolo26n_tuning_results.csv" reports/tables/
+scp "${REMOTE}:${REMOTE_PROJECT}/reports/tables/yolo26n_hparam_summary.csv" reports/tables/
+scp "${REMOTE}:${REMOTE_PROJECT}/reports/tables/final_run_results.csv" reports/tables/
+scp "${REMOTE}:${REMOTE_PROJECT}/reports/tables/final_seed_summary.csv" reports/tables/
+scp "${REMOTE}:${REMOTE_PROJECT}/reports/tables/final_class_results.csv" reports/tables/
+scp "${REMOTE}:${REMOTE_PROJECT}/reports/tables/final_class_summary.csv" reports/tables/
+scp "${REMOTE}:${REMOTE_PROJECT}/configs/yolo26n_best.yaml" configs/
+scp "${REMOTE}:${REMOTE_PROJECT}/models/final/model_selection.json" models/final/
+scp "${REMOTE}:${REMOTE_PROJECT}/models/final/yolo26n_selected.pt" models/final/
+```
+
+Optional integrity check:
+
+```bash
+sha256sum models/final/yolo26n_selected.pt
+ssh "$REMOTE" "cd $REMOTE_PROJECT && sha256sum models/final/yolo26n_selected.pt"
+```
+
 ## Optional analysis sources for presentation figures
 
 These files are not committed. They are only needed to regenerate presentation figures locally after the final Habrok runs.
@@ -421,4 +302,92 @@ scp "${Remote}:${RemoteProject}/experiments/slurm/final_*.err" experiments/analy
 scp "${Remote}:${RemoteProject}/reports/tables/final_training_plan.csv" experiments/analysis_sources/final_training_plan.csv
 ```
 
+
 YOLO26n `results.csv` files provide true train/validation loss curves and validation mAP curves. YOLOv4 Darknet logs provide training average loss and validation mAP50, but not a clean validation-loss curve.
+
+
+
+## Workflow in this repository
+
+All changes should go through a feature branch and Pull Request. Direct pushes to `dev` and `main` should be avoided.
+
+Start from the latest `dev` branch:
+
+```bash
+git checkout dev
+git pull --ff-only origin dev
+```
+
+Create a feature branch:
+
+```bash
+git checkout -b docs/example
+```
+
+Before committing, run the tests and pre-commit checks:
+
+```bash
+docker compose run --rm api python -m unittest discover tests
+docker compose run --rm api pre-commit run --all-files
+```
+
+Commit and push the branch:
+
+```bash
+git status
+git add <changed-files>
+git commit -m "Example message"
+git push -u origin docs/example
+```
+
+Then open a Pull Request on GitHub with:
+
+```text
+base: dev
+compare: your feature branch
+```
+
+Do not commit raw data, training runs, experiment folders, intermediate checkpoints or temporary analysis files. The selected deployment artifact `models/final/yolo26n_selected.pt` is intentionally included.
+
+## Final project design
+
+Data:
+- Public Figshare side-scan sonar dataset, year archives 2010, 2015, 2017, 2018 and 2021.
+- Fixed train/validation/test split with seed 117.
+- Split stratified by image category: `empty`, `milco_only`, `nombo_only`, `mixed`.
+- Five cross-validation folds created only from the training split.
+
+YOLO26n tuning:
+- learning rates: 0.001, 0.005, 0.01
+- batch sizes: 8, 16
+- optimizers: SGD, AdamW
+- patience fixed at 100
+- tuning metric: mean validation mAP50-95 across five folds
+
+Final comparison:
+- YOLOv4 default augmentation
+- YOLOv4 no augmentation
+- YOLO26n YOLOv4-style augmentation
+- YOLO26n no augmentation
+- seeds: 117, 221, 333
+- final reporting: held-out test metrics as mean +/- standard deviation over seeds
+- YOLO26n final training uses the selected CV hyperparameters with patience=100
+
+Deployment selection:
+- select only among YOLO26n YOLOv4-style final runs
+- select by validation mAP50-95, not test mAP50-95
+- keep the test set only for final reporting
+
+Main final artifacts:
+
+```text
+configs/yolo26n_best.yaml
+models/final/model_selection.json
+models/final/yolo26n_selected.pt
+reports/tables/yolo26n_tuning_results.csv
+reports/tables/yolo26n_hparam_summary.csv
+reports/tables/final_run_results.csv
+reports/tables/final_seed_summary.csv
+reports/tables/final_class_results.csv
+reports/tables/final_class_summary.csv
+```
