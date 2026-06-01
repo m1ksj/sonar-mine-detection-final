@@ -8,6 +8,30 @@ This repository contains the source code, configs, final result tables and the s
 
 The project was developed and tested with Python 3.11. Other recent Python versions may also work, but the setup should always be validated with the tests below.
 
+## Recommended Docker setup
+
+This is the recommended local setup for running the deployment API and Streamlit demo. It avoids local Python/Pipenv version issues and should work the same on Windows, macOS and Linux, as long as Docker is installed.
+
+```bash
+git clone -b dev https://github.com/m1ksj/sonar-mine-detection-final.git
+cd sonar-mine-detection-final
+
+docker compose build
+docker compose run --rm api python scripts/setup_data.py --config configs/project.yaml
+docker compose run --rm api python -m unittest discover tests
+docker compose up
+```
+After docker compose up, open:
+
+http://127.0.0.1:8000/docs
+http://127.0.0.1:8501
+
+
+The FastAPI endpoint is the actual deployment interface. The Streamlit app is only a visual frontend
+
+
+# lokal
+
 ### Windows PowerShell
 
 Clone the repository and enter the project folder:
