@@ -248,7 +248,7 @@ Get-FileHash models/final/yolo26n_selected.pt -Algorithm SHA256
 ssh $Remote "cd $RemoteProject && sha256sum models/final/yolo26n_selected.pt"
 ```
 
-### macOS / Linux terminal
+### macOS/Linux terminal
 
 Run this from your local machine, not from the SSH session. Replace `<your-s-number>` with the Habrok account that ran the experiments.
 
@@ -370,7 +370,7 @@ Final comparison:
 - YOLO26n YOLOv4-style augmentation
 - YOLO26n no augmentation
 - seeds: 117, 221, 333
-- final reporting: held-out test metrics as mean +/- standard deviation over seeds
+- final reporting: held-out test metrics over seeds; presentation tables report mean +/- SEM
 - YOLO26n final training uses the selected CV hyperparameters with patience=100
 
 Deployment selection:
