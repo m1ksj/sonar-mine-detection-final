@@ -248,7 +248,7 @@ Get-FileHash models/final/yolo26n_selected.pt -Algorithm SHA256
 ssh $Remote "cd $RemoteProject && sha256sum models/final/yolo26n_selected.pt"
 ```
 
-### macOS / Linux terminal
+### macOS/Linux terminal
 
 Run this from your local machine, not from the SSH session. Replace `<your-s-number>` with the Habrok account that ran the experiments.
 
