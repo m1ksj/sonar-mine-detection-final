@@ -1,0 +1,23 @@
+{
+  "selection_metric": "val_map50_95",
+  "selected": {
+    "job_index": "6",
+    "model": "yolo26n",
+    "augmentation": "yolo26n_yolov4_style",
+    "seed": "117",
+    "run_name": "final_yolo26n_yolo26n_yolov4_style_seed117",
+    "runtime_seconds": "3127.9895300865173",
+    "best_weights": "/scratch/s5626595/sonar-mine-detection-final/experiments/final/final_yolo26n_yolo26n_yolov4_style_seed117/weights/best.pt",
+    "best_weights_mb": "5.444414",
+    "parameter_count": "2375226",
+    "val_precision": "0.82715",
+    "val_recall": "0.7228",
+    "val_map50": "0.76298",
+    "val_map50_95": "0.51601",
+    "test_precision": "0.8121718241638176",
+    "test_recall": "0.6643356643356644",
+    "test_f1": "0.7308526540680224",
+    "test_map50": "0.6946237799060548",
+    "test_map50_95": "0.4759266031345727"
+  }
+}

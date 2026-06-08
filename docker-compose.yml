@@ -1,0 +1,26 @@
+﻿services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      SONAR_API_HOST: "0.0.0.0"
+      SONAR_API_PORT: "8000"
+    volumes:
+      - .:/app
+
+  streamlit:
+    build: .
+    command: >
+      streamlit run sonar_mine_detection/ui/streamlit_app.py
+      --server.address=0.0.0.0
+      --server.port=8501
+      --server.headless=true
+    ports:
+      - "8501:8501"
+    environment:
+      SONAR_API_URL: "http://api:8000/predict"
+    volumes:
+      - .:/app
+    depends_on:
+      - api

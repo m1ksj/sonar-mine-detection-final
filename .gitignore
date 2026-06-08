@@ -1,6 +1,39 @@
-Pipfile.lock
-.idea
+﻿# Python
 __pycache__/
-.DS_Store
-venv/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Environments
+.venv/
 .env
+
+# Root-level generated artifacts
+/data/
+/external/
+/experiments/
+/runs/
+/ultralytics_runs/
+/darknet/
+
+# Large model files
+*.pt
+!models/final/yolo26n_selected.pt
+*.pth
+*.weights
+*.onnx
+*.engine
+
+# Archives and logs
+*.zip
+*.tar
+*.tar.gz
+*.log
+
+# OS / editor
+.DS_Store
+.vscode/
+
+# SLURM output files
+*.out
+*.err
